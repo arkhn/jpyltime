@@ -20,13 +20,3 @@ exclude = '''
 [tool.isort]
 profile = 'black'
 line_length = 100
-known_local_folder = [
-    'pyckaxe',
-    'pyclasso',
-    'pylone',
-    'pyoner',
-    'pypa',
-    'pyramid',
-    'pyrana',
-    'tests'
-]
