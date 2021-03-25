@@ -2,6 +2,7 @@
 
 from typing import List
 
+import fhir2dataset as query
 from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -25,21 +26,30 @@ class Attribute(BaseModel):
     anonymize: bool
 
 
-@app.get("/")
-def read_root():
-    """Test function."""
-    return {"Hello": "World"}
-
-
 @app.post("/fhir2dataset")
-def call_fhir2dataset(
+def fhir2dataset_route(
     practitioner_id: str = Body(...),
     attributes: List[Attribute] = Body(...),
     patient_ids: List[str] = Body(...),
-):
+) -> str:
+    """Route to call fhir2dataset & it's wrapping functions.
+
+    Ags:
+    * `practitioner_id`: identifier of a practitioner;
+    * `attributes`: list of attributes to compute; each attribute contains:
+        - `official_name`,
+        - `custom_name`,
+        - `anonymize`;
+    * `patient_ids`: identifiers of the patients to output.
+
+    Returns:
+        JSON representation of the table containing the required data.
+    """
     # TODO
-    return {
-        "practitioner_id": practitioner_id,
-        "attributes": attributes,
-        "patient_ids": patient_ids,
-    }
+    sql_query = """
+    SELECT Patient.name.family, Patient.address.city
+    FROM Patient
+    WHERE Patient.birthdate = 2000-01-01 AND Patient.gender = 'female'
+    """
+    df = query.sql(sql_query)
+    return df.to_json(orient="records")
