@@ -2,8 +2,9 @@
 
 from typing import List
 
-from fastapi import FastAPI, Query
+from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 
 app = FastAPI()
 
@@ -16,16 +17,25 @@ app.add_middleware(
 )
 
 
+class Attribute(BaseModel):
+    """Define the data model for the attributes."""
+
+    official_name: str
+    custom_name: str
+    anonymize: bool
+
+
 @app.get("/")
 def read_root():
+    """Test function."""
     return {"Hello": "World"}
 
 
-@app.get("/fhir2dataset")
-def read_item(
+@app.post("/fhir2dataset")
+def call_fhir2dataset(
     practitioner_id: str,
-    group_id: str,
-    col_names: List[str] = Query(...),
+    attributes: List[Attribute],
+    patient_ids: List[str] = Body(...),
 ):
     # TODO
     pass
