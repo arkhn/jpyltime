@@ -31,7 +31,7 @@ ENV PATH="$POETRY_HOME/bin:$VENV_PATH/bin:$PATH"
 
 RUN apt-get update \
     && ACCEPT_EULA=Y apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends build-essential git nodejs \
+    && apt-get install -y --no-install-recommends build-essential git nodejs npm \
     && apt-get autoremove --purge -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
