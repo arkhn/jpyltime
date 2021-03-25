@@ -19,7 +19,7 @@ class FHIR2DS_Preprocessing():
         """Generate SELECT ... FROM ... condition of the sql query, from a list of attribute names given by the user"""
         select_attributes = [self.map_attributes[attribute]["fhir_source"]["select"] for attribute in attributes if "select" in self.map_attributes[attribute]["fhir_source"]]
         select_attributes_flatten = [item for attributes in select_attributes for item in attributes]
-        return select_keyword + ", \n".join(select_attributes_flatten) + "\n" + from_keyword +  self.map_attributes[attributes[0]]["fhir_resource"] 
+        return select_keyword + ", ".join(select_attributes_flatten) + " " + from_keyword +  self.map_attributes[attributes[0]]["fhir_resource"] 
 
     def _join(self, attributes: List[str]) -> Optional[str]:
         """Generate INNER JOIN ... ON ... conditions of the sql query, from a list of attribute names given by the user"""
@@ -30,7 +30,7 @@ class FHIR2DS_Preprocessing():
                     sql_join.append(" ".join([join_keyword,self.map_attributes[attribute]["fhir_resource"],on_keyword , join_condition["key"],equal_keyword, join_condition["value"]]))
         if not sql_join:
             return ""
-        return "\n".join(sql_join)
+        return " ".join(sql_join)
 
 
     def _where(self, attributes: List[str]) -> Optional[str]:
@@ -43,24 +43,16 @@ class FHIR2DS_Preprocessing():
                     where_conditions.append(" ".join([where_condition["key"],equal_keyword,where_condition["value"]]))
         if not where_conditions:
             return ""
-        return where_keyword +("\n"+and_keyword).join(where_conditions)
+        return where_keyword +(" "+and_keyword).join(where_conditions)
 
 
     def _add_practitionner_id_condition(self, practitioner_id: str) :
         """Add a condition on the patient scope when a practioner id is specified by the user"""
-        self.map_attributes["Practitioner"] = {
-            'fhir_resource': 'Practitioner',
-            'fhir_source': { 
-                "join": [{ 
-                    "key": "Practitioner.id", 
-                    "value": "Patient.general-practitioner" 
-                    }],
-                "where": [{ 
+        self.map_attributes["Practitioner"]["fhir_source"]["where"] =[{ 
                     "key": "Practitioner.id", 
                     "value": str(practitioner_id)
                     }] 
-                } 
-            }  
+        
                 
     def _add_patient_birthdate(self, birthdate_condition: str) :
         """Add a condition on the patient scope when a practioner id is specified by the user"""
@@ -69,25 +61,20 @@ class FHIR2DS_Preprocessing():
                         "value": str(birthdate_condition)
                     }]
 
-    def update_attributes(self, attributes: List[str], practitioner_id: Optional[str] = None, group_id: Optional[str]=None, patient_birthdate_condition: Optional[str] = None) -> Tuple[List[str], Dict]:
-        """Update a list of attribute names given by the user with restriction on the patient scope by specifying a practioner id, a group id and / or a birthdate condition.
+    def update_attributes(self, attributes: List[str], practitioner_id: Optional[str] = None,  patient_birthdate_condition: Optional[str] = None) -> Tuple[List[str], Dict]:
+        """Update a list of attribute names given by the user with restriction on the patient scope by specifying a practioner id and / or a birthdate condition.
 
         Args:
             attributes (List[str]): List of attributes that must appear in the SQL query
             practitioner_id (Optional[str]): Practioner id to restrict the scope of the query to specific patient from a practioner. Defaults to None.
-            group_id (Optional[str]): Group id to restrict the scope of the query to specific patient from a group. Defaults to None.
             patient_birthdate_condition (Optional[str]): Condition on the patient birthdate in str format. Ex: ge2000-01-01
 
         Returns:
-            attributes: List of attributes updated with constraints on practioner, birthdate and group
+            attributes: List of attributes updated with constraints on practioner, birthdate 
         """
         if practitioner_id: 
             self._add_practitionner_id_condition(practitioner_id) 
             attributes.append("Practitioner")
-        # TODO: condition on group_id (How is define a group of patient?)
-        # if group_id:
-            # self._add_group_id(group_id) 
-            # attributes.append("Group") 
         if patient_birthdate_condition:
             self._add_patient_birthdate(patient_birthdate_condition)
             attributes.append("Birthdate")
