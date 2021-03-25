@@ -1,10 +1,12 @@
 """Set-up the FastAPI to communicate with fhir2dataset."""
 
+import io
 from typing import List
 
 import fhir2dataset as query
 from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -31,7 +33,7 @@ def fhir2dataset_route(
     practitioner_id: str = Body(...),
     attributes: List[Attribute] = Body(...),
     patient_ids: List[str] = Body(...),
-) -> str:
+) -> StreamingResponse:
     """Route to call fhir2dataset & it's wrapping functions.
 
     Ags:
@@ -52,4 +54,8 @@ def fhir2dataset_route(
     WHERE Patient.birthdate = 2000-01-01 AND Patient.gender = 'female'
     """
     df = query.sql(sql_query)
-    return df.to_json(orient="records")
+
+    response = StreamingResponse(io.StringIO(df.to_csv(index=False)), media_type="text/csv")
+    response.headers["Content-Disposition"] = "attachment; filename=export.csv"
+
+    return response
