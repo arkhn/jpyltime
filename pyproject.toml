@@ -1,0 +1,47 @@
+[tool.poetry]
+name = "jpyltime"
+version = "0.1.0"
+description = "API for fhir2dataset"
+license = "Apache-2.0"
+authors = ["Arkhn's Data Team <data@arkhn.com>"]
+readme = "README.md"
+repository = "https://github.com/arkhn/jpyltime"
+
+[tool.poetry.dependencies]
+python = "~3.8"
+fastapi = "0.63.0"
+fhir2dataset = {git = "https://github.com/arkhn/FHIR2Dataset"}
+pandas = "*"
+pydantic = "*"
+uvicorn = "*"
+
+[tool.poetry.dev-dependencies]
+pytest = "*"
+pytest-cov = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 100
+target-version = ['py36', 'py37', 'py38']
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | _build
+  | buck-out
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = 'black'
+line_length = 100
