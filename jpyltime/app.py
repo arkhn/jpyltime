@@ -55,9 +55,7 @@ def fhir2dataset_route(
     # postprocessing
     df = FHIR2DS_Postprocessing(updated_map_attributes).postprocessing(sql_df, updated_d_attributes, patient_ids)
 
-    stream = io.StringIO()
-    df.to_csv(stream, index=False)
-    response = StreamingResponse(iter([stream.getvalue()]), media_type="text/csv")
+    response = StreamingResponse(io.StringIO(df.to_csv(index=False)), media_type="text/csv")
     response.headers["Content-Disposition"] = "attachment; filename=export.csv"
 
     return response
