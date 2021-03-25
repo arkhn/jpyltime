@@ -12,6 +12,7 @@ python = "~3.8"
 fastapi = "0.63.0"
 pydantic = "*"
 uvicorn = "*"
+fhir2dataset = {git = "https://github.com/arkhn/FHIR2Dataset"}
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
