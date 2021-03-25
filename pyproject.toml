@@ -10,9 +10,10 @@ repository = "https://github.com/arkhn/jpyltime"
 [tool.poetry.dependencies]
 python = "~3.8"
 fastapi = "0.63.0"
+fhir2dataset = {git = "https://github.com/arkhn/FHIR2Dataset"}
+pandas = "*"
 pydantic = "*"
 uvicorn = "*"
-fhir2dataset = {git = "https://github.com/arkhn/FHIR2Dataset"}
 
 [tool.poetry.dev-dependencies]
 pytest = "*"
