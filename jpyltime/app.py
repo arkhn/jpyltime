@@ -33,9 +33,13 @@ def read_root():
 
 @app.post("/fhir2dataset")
 def call_fhir2dataset(
-    practitioner_id: str,
-    attributes: List[Attribute],
+    practitioner_id: str = Body(...),
+    attributes: List[Attribute] = Body(...),
     patient_ids: List[str] = Body(...),
 ):
     # TODO
-    pass
+    return {
+        "practitioner_id": practitioner_id,
+        "attributes": attributes,
+        "patient_ids": patient_ids,
+    }
