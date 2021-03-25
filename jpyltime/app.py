@@ -3,6 +3,7 @@
 from typing import List, Dict, Any
 import json
 import settings
+import io
 
 import fhir2dataset as query
 from fastapi import Body, FastAPI
@@ -11,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from jpyltime.utils import Attribute
 from jpyltime.preprocessing_fhir2ds import FHIR2DS_Preprocessing
 from jpyltime.postprocessing_fhir2ds import FHIR2DS_Postprocessing
+from fastapi.responses import StreamingResponse
 
 app = FastAPI()
 
@@ -28,7 +30,7 @@ def fhir2dataset_route(
     practitioner_id: str = Body(...),
     attributes: List[Attribute] = Body(...),
     patient_ids: List[str] = Body(...),
-) -> str:
+) -> StreamingResponse:
     """Route to call fhir2dataset & it's wrapping functions.
 
     Ags:
@@ -52,4 +54,10 @@ def fhir2dataset_route(
 
     # postprocessing
     df = FHIR2DS_Postprocessing(updated_map_attributes).postprocessing(sql_df, updated_d_attributes, patient_ids)
-    return df.to_json(orient="records")
+
+    stream = io.StringIO()
+    df.to_csv(stream, index=False)
+    response = StreamingResponse(iter([stream.getvalue()]), media_type="text/csv")
+    response.headers["Content-Disposition"] = "attachment; filename=export.csv"
+
+    return response
