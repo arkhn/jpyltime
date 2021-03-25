@@ -69,6 +69,7 @@ def test_complex_query():
     d_attributes = {attribute.official_name : attribute for attribute in attributes}
 
     query = FHIR2DS_Preprocessing().generate_sql_query(d_attributes)
+
     assert "Patient.name.given" in query # First Name
     assert "Patient.gender" in query # Gender
     assert "ASAT.valueQuantity.value" in query # ASAT
@@ -97,5 +98,3 @@ def test_preprocessing():
     assert "Potassium.valueQuantity.value" in query # Potassium
     assert "Potassium.valueQuantity.unit" in query # Potassium
     assert "Potassium.code = http://loinc.org%7C2823-3" in query # Potassium
-
-     
