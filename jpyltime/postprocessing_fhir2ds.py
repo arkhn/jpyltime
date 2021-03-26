@@ -27,7 +27,7 @@ class FHIR2DS_Postprocessing():
         patient_id_colname = self.map_attributes[patient_id_col]["fhir_source"]["select"][0]
         df = df.dropna(subset=[patient_id_colname])
         display_df = pd.DataFrame()
-        display_df[attributes[patient_id_col].custom_name] = df[patient_id_colname].apply(lambda x: x[0])
+        display_df[attributes[patient_id_col].custom_name] = df[patient_id_colname].apply(lambda x: x[0] if type(x) == list else x)
         for attribute in attributes.values():
             if attribute.official_name is not patient_id_col:
                 attribute_info = self.map_attributes[attribute.official_name]
