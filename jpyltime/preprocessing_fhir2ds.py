@@ -1,6 +1,8 @@
 from typing import List, Optional, Dict, Any, Tuple
 import json
 
+from jpyltime.utils import Attribute
+
 where_keyword = "WHERE "
 select_keyword = "SELECT "
 from_keyword = "FROM "
@@ -61,11 +63,11 @@ class FHIR2DS_Preprocessing():
                         "value": str(birthdate_condition)
                     }]
 
-    def update_attributes(self, attributes: List[str], practitioner_id: Optional[str] = None,  patient_birthdate_condition: Optional[str] = None) -> Tuple[List[str], Dict]:
-        """Update a list of attribute names given by the user with restriction on the patient scope by specifying a practioner id and / or a birthdate condition.
+    def update_attributes(self, attributes: Dict[str, Attribute], practitioner_id: Optional[str] = None,  patient_birthdate_condition: Optional[str] = None):
+        """Update a dict of attribute given by the user with restriction on the patient scope by specifying a practioner id and / or a birthdate condition.
 
         Args:
-            attributes (List[str]): List of attributes that must appear in the SQL query
+            attributes (Dict[Attribute]): Dict of attributes that must appear in the SQL query
             practitioner_id (Optional[str]): Practioner id to restrict the scope of the query to specific patient from a practioner. Defaults to None.
             patient_birthdate_condition (Optional[str]): Condition on the patient birthdate in str format. Ex: ge2000-01-01
 
@@ -74,17 +76,19 @@ class FHIR2DS_Preprocessing():
         """
         if practitioner_id: 
             self._add_practitionner_id_condition(practitioner_id) 
-            attributes.append("Practitioner")
+            if "Practitioner" not in attributes:
+                attributes["Practitioner"] = Attribute(official_name="Practitioner",custom_name="Practitioner",anonymize=False)
         if patient_birthdate_condition:
             self._add_patient_birthdate(patient_birthdate_condition)
-            attributes.append("Birthdate")
+            if "Birthdate" not in attributes:
+                attributes["Birthdate"] = Attribute(official_name="Birthdate",custom_name="Birthdate",anonymize=False)
+        return attributes
 
 
         return attributes, self.map_attributes
 
-
-    def generate_sql_query(self, attributes : List[str]) -> str:
-        """Generate a SQL query from a list of attribute names.
+    def generate_sql_query(self, d_attributes : Dict[str,Attribute]) -> str:
+        """Generate a SQL query from a list of attribute.
 
         Args:
             attributes: List of attributes that must appear in the SQL query
@@ -92,6 +96,7 @@ class FHIR2DS_Preprocessing():
         Returns:
             str: SQL query as a string
         """
+        attributes = d_attributes.keys()
         sql_select = self._select(attributes)
         sql_join = self._join(attributes)
         sql_where = self._where(attributes)

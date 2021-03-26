@@ -2,6 +2,8 @@ from typing import List, Dict, Any, Optional
 import json
 import pandas as pd
 
+from jpyltime.utils import Attribute
+
 class FHIR2DS_Postprocessing():
     def __init__(self,map_attributes:Dict[str, Any],patient_id_attribute_name: str):
         """map_attributes: a mapping of Column Name in natural language to FHIR and display information (resource name, source name and conditions)"""
@@ -16,26 +18,33 @@ class FHIR2DS_Postprocessing():
         return df.groupby(by=[col_for_merging]).agg(lambda x: list(x[x.notna()])).reset_index()
 
 
-    def _concatenate_columns(self, df: pd.DataFrame, attributes : List[str]) -> pd.DataFrame:
+    def _concatenate_columns(self, df: pd.DataFrame, attributes : Dict[str, Attribute]) -> pd.DataFrame:
         """Read display info in attribute dictionary and modify the dataFrame by combining some columns to improve readibility and display.
             Ex: combine value with quantity improve readibility: 
                 --  | patient.weight.value : 30 | patient.weight.unit : kg | 
                 ++  | Weight : 30 kg |
         """
         display_df = pd.DataFrame()
-        for attribute in attributes:
-            attribute_info = self.map_attributes[attribute]
+        for attribute in attributes.values():
+            attribute_info = self.map_attributes[attribute.official_name]
             if "display" in attribute_info:
-                display_df[attribute] = df[attribute_info["display"]["concatenate_columns"]].apply(lambda row: attribute_info["display"]["join_symbol"].join(row.values.astype(str)), axis=1)
+                display_df[attribute.custom_name] = df[attribute_info["display"]["concatenate_columns"]].apply(lambda row: attribute_info["display"]["join_symbol"].join(row.values.astype(str)), axis=1)
             else:
-                display_df[attribute] = df[attribute_info["fhir_source"]["select"][0]]
+                display_df[attribute.custom_name] = df[attribute_info["fhir_source"]["select"][0]]
         return display_df
 
-    def restrict_patient_scope(self, df: pd.DataFrame, group_id: List[str]) -> pd.DataFrame:
-        """Filter to keep only patients whose id is present on the group_id"""
-        return df[self.patient_id_attribute_name].isin(group_id)
+    def restrict_patient_scope(self, df: pd.DataFrame, patient_ids: List[str]) -> pd.DataFrame:
+        """Filter to keep only patients whose id is present on patient_ids"""
+        return df["Patient:from_id"].isin(patient_ids)
 
-    def improve_display(self, df: pd.DataFrame, attributes : List[str], group_id : Optional[List[str]] = None ) -> pd.DataFrame:
+    def anonymize(self, df: pd.DataFrame, attributes: Dict[str, Attribute], anonymization_symbol = "*") -> pd.DataFrame:
+        """Anonymized columns by replacing value with symbol"""
+        for attribute in attributes.values():
+            if attribute.anonymize:
+                df[attribute.custom_name] = anonymization_symbol
+        return df
+
+    def postprocessing(self, df: pd.DataFrame, attributes : Dict[str, Attribute], patient_ids : Optional[List[str]] = None ) -> pd.DataFrame:
         """Improve readibility and display of a given dataFrame, by:
             - Filtering some patiens
             - Concatenated some columns, ex Value with Unit (| 30 | mg | => | 30 mg | )
@@ -43,8 +52,8 @@ class FHIR2DS_Postprocessing():
 
         Args:
             df: DataFrame as outputted by FHIR2Dataset api
-            attributes: List of attributes in natural language, asked by user
-            group_id: List of patients that should appears on the data. Defaults to None.
+            attributes: Dict of attributes asked by user
+            patient_ids: List of patients that should appears on the data. Defaults to None.
 
         Returns:
             pd.DataFrame: The dataFrame updated with the previous transformation.
