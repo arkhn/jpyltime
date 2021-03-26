@@ -29,7 +29,7 @@ class FHIR2DS_Postprocessing():
         display_df = pd.DataFrame()
         display_df[attributes[patient_id_col].custom_name] = df[patient_id_colname].apply(lambda x: x[0] if type(x) == list else x)
         for attribute in attributes.values():
-            if attribute.official_name is not patient_id_col:
+            if attribute.official_name != patient_id_col:
                 attribute_info = self.map_attributes[attribute.official_name]
                 if "display" in attribute_info:
                     display_df[attribute.custom_name] = df[attribute_info["display"]["concatenate_columns"]].apply(lambda row: attribute_info["display"]["join_symbol"].join(row.values.astype(str)), axis=1)
