@@ -5,9 +5,10 @@ import pandas as pd
 from jpyltime.utils import Attribute
 
 class FHIR2DS_Postprocessing():
-    def __init__(self,map_attributes:Dict[str, Any]):
+    def __init__(self,map_attributes:Dict[str, Any], anonymization_symbol: str = "*"):
         """map_attributes: a mapping of Column Name in natural language to FHIR and display information (resource name, source name and conditions)"""
         self.map_attributes = map_attributes
+        self.anonymization_symbol = anonymization_symbol
 
     def _groupby_one_column(self, df: pd.DataFrame, col_for_merging:str) -> pd.DataFrame:
         """Groupby one column (arg. col_for_merging) and combine the grouped rows in list, keeping only not null value
@@ -40,11 +41,11 @@ class FHIR2DS_Postprocessing():
         """Filter to keep only patients whose id is present on patient_ids"""
         return df[df[patient_id_col].isin(patient_ids)]
 
-    def anonymize(self, df: pd.DataFrame, attributes: Dict[str, Attribute], anonymization_symbol = "*") -> pd.DataFrame:
+    def anonymize(self, df: pd.DataFrame, attributes: Dict[str, Attribute]) -> pd.DataFrame:
         """Anonymized columns by replacing value with symbol"""
         for attribute in attributes.values():
             if attribute.anonymize:
-                df[attribute.custom_name] = anonymization_symbol
+                df[attribute.custom_name] = self.anonymization_symbol
         return df
 
     def postprocessing(self, df: pd.DataFrame, attributes : Dict[str, Attribute], patient_ids : Optional[List[str]] = None ) -> pd.DataFrame:

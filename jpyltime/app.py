@@ -2,6 +2,7 @@
 
 from typing import List, Dict, Any
 import json
+import settings
 
 import fhir2dataset as query
 from fastapi import Body, FastAPI
@@ -43,14 +44,11 @@ def fhir2dataset_route(
     """
     # preprocessing
     d_attributes = {attribute.official_name : attribute for attribute in attributes}
-    sql_query, updated_d_attributes, updated_map_attributes = FHIR2DS_Preprocessing().preprocessing(d_attributes,practitioner_id)
-
-    # sql_query = """
-    # SELECT Patient.name.family, Patient.address.city
-    # FROM Patient
-    # WHERE Patient.birthdate = 2000-01-01 AND Patient.gender = 'female'
-    # """
-    sql_df = query.sql(sql_query)
+    sql_query, updated_d_attributes, updated_map_attributes = FHIR2DS_Preprocessing().preprocessing(d_attributes)
+    print(sql_query)
+    
+    sql_df = query.sql(sql_query, fhir_api_url=settings.FHIR_API_URL, token=practitioner_id)
+    print(sql_df.head())
 
     # postprocessing
     df = FHIR2DS_Postprocessing(updated_map_attributes).postprocessing(sql_df, updated_d_attributes, patient_ids)
