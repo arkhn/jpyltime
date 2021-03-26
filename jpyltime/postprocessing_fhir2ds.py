@@ -42,7 +42,7 @@ class FHIR2DS_Postprocessing():
         return df[df[patient_id_col].isin(patient_ids)]
 
     def anonymize(self, df: pd.DataFrame, attributes: Dict[str, Attribute]) -> pd.DataFrame:
-        """Anonymized columns by replacing value with symbol"""
+        """Anonymized columns by replacing value with a symbol"""
         for attribute in attributes.values():
             if attribute.anonymize:
                 df[attribute.custom_name] = self.anonymization_symbol
@@ -50,13 +50,14 @@ class FHIR2DS_Postprocessing():
 
     def postprocessing(self, df: pd.DataFrame, attributes : Dict[str, Attribute], patient_ids : Optional[List[str]] = None ) -> pd.DataFrame:
         """Improve readibility and display of a given dataFrame, by:
-            - Filtering some patiens
             - Concatenated some columns, ex Value with Unit (| 30 | mg | => | 30 mg | )
             - Groupby one column to reduce redundancy 
+            - Anonymize sensitive data
+            - Filter on patient ids
 
         Args:
             df: DataFrame as outputted by FHIR2Dataset api
-            attributes: Dict of attributes asked by user
+            attributes: Dict of attributes asked by user, with info on anonymization constraints and custom names
             patient_ids: List of patients that should appears on the data. Defaults to None.
 
         Returns:

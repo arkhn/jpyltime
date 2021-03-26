@@ -110,7 +110,20 @@ class FHIR2DS_Preprocessing():
         sql_query = "\n".join([sql_part for sql_part in [sql_select, sql_join, sql_where] if sql_part])
         return sql_query
 
-    def preprocessing(self, attributes: Dict[str, Attribute], practitioner_id:Optional[str]= None, patient_birthdate_condition: Optional[str] = None) -> Tuple[str, Dict[str, Attribute]]:
+    def preprocessing(self, attributes: Dict[str, Attribute], practitioner_id:Optional[str]= None, patient_birthdate_condition: Optional[str] = None) -> Tuple[str, Dict[str, Attribute], Dict[str,Any]]:
+        """Adapt a list of attributes to generate a correct sql query to request the fhir api
+
+        Args:
+            attributes: Dict of Attributes that must appear in the SQL query, given by the user
+            practitioner_id (Optional[str]): Practioner id to restrict the scope of the query to specific patient from a practioner. Defaults to None.
+            patient_birthdate_condition (Optional[str]): Condition on the patient birthdate in str format. Ex: ge2000-01-01
+
+        Returns:
+            Tuple[str, Dict[str, Attribute]]: 
+            - sql_query: sql query matching the given attributes and the fhir constraints
+            - attributes: Dict of attribute, udapted with preprocessing info (as condition on birthdate and mandatory presence of "Identifier")
+            - map_attributes: mapping of Column Name in natural language to FHIR information (resource name, source name and conditions)
+        """
         self._check_attributes_defined(attributes)
 
         attributes = self.update_attributes(attributes, practitioner_id, patient_birthdate_condition)
