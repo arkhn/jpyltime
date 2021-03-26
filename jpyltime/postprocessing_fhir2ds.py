@@ -38,7 +38,7 @@ class FHIR2DS_Postprocessing():
 
     def restrict_patient_scope(self, df: pd.DataFrame, patient_ids: List[str], patient_id_col: str) -> pd.DataFrame:
         """Filter to keep only patients whose id is present on patient_ids"""
-        return df[patient_id_col].isin(patient_ids)
+        return df[df[patient_id_col].isin(patient_ids)]
 
     def anonymize(self, df: pd.DataFrame, attributes: Dict[str, Attribute], anonymization_symbol = "*") -> pd.DataFrame:
         """Anonymized columns by replacing value with symbol"""
