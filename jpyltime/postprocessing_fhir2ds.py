@@ -23,14 +23,17 @@ class FHIR2DS_Postprocessing():
                 ++  | Weight : 30 kg |
             Replace col name with custom name
         """
+        patient_id_colname = self.map_attributes[patient_id_col]["fhir_source"]["select"][0]
+        df = df.dropna(subset=[patient_id_colname])
         display_df = pd.DataFrame()
-        display_df[patient_id_col] = df[patient_id_col]
+        display_df[attributes[patient_id_col].custom_name] = df[patient_id_colname].apply(lambda x: x[0])
         for attribute in attributes.values():
-            attribute_info = self.map_attributes[attribute.official_name]
-            if "display" in attribute_info:
-                display_df[attribute.custom_name] = df[attribute_info["display"]["concatenate_columns"]].apply(lambda row: attribute_info["display"]["join_symbol"].join(row.values.astype(str)), axis=1)
-            else:
-                display_df[attribute.custom_name] = df[attribute_info["fhir_source"]["select"][0]]
+            if attribute.official_name is not patient_id_col:
+                attribute_info = self.map_attributes[attribute.official_name]
+                if "display" in attribute_info:
+                    display_df[attribute.custom_name] = df[attribute_info["display"]["concatenate_columns"]].apply(lambda row: attribute_info["display"]["join_symbol"].join(row.values.astype(str)), axis=1)
+                else:
+                    display_df[attribute.custom_name] = df[attribute_info["fhir_source"]["select"][0]]
         return display_df
 
     def restrict_patient_scope(self, df: pd.DataFrame, patient_ids: List[str], patient_id_col: str) -> pd.DataFrame:
@@ -58,11 +61,13 @@ class FHIR2DS_Postprocessing():
         Returns:
             pd.DataFrame: The dataFrame updated with the previous transformation.
         """
-        patient_id_col = "Patient:from_id"
-        if patient_ids:
-            df = self.restrict_patient_scope(df, patient_ids, patient_id_col)
+        patient_id_col = "Identifier"
         df = self._concatenate_columns(df, attributes, patient_id_col)
-        df = self._groupby_one_column(df, col_for_merging=patient_id_col)
+        custom_patient_id_colname = attributes[patient_id_col].custom_name
+        df = self._groupby_one_column(df, col_for_merging=custom_patient_id_colname)
+        if patient_ids:
+            df = self.restrict_patient_scope(df, patient_ids, custom_patient_id_colname)
+            
         df = self.anonymize(df, attributes)
         return df
 

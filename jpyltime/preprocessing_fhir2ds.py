@@ -76,7 +76,7 @@ class FHIR2DS_Preprocessing():
             attributes: List of attributes updated with constraints on practioner, birthdate 
         """
         if "Identifier" not in attributes:
-            attributes["Identifier"] = Attribute(official_name="Identifier",custom_name="Identifier",anonymize=False)
+            attributes["Identifier"] = Attribute(official_name="Identifier",custom_name="PatientID",anonymize=False)
         if practitioner_id: 
             self._add_practitionner_id_condition(practitioner_id) 
             if "Practitioner" not in attributes:
