@@ -5,7 +5,6 @@ from jpyltime.utils import Attribute
 
 where_keyword = "WHERE "
 select_keyword = "SELECT "
-from_keyword = "FROM "
 join_keyword = "INNER JOIN"
 on_keyword = "ON"
 equal_keyword = "="
@@ -17,11 +16,12 @@ class FHIR2DS_Preprocessing():
         self.map_attributes = map_attributes
 
 
-    def _select(self,attributes: List[str]) -> str:
-        """Generate SELECT ... FROM ... condition of the sql query, from a list of attribute names given by the user"""
+    def _select(self, attributes: List[str]) -> str:
+        """Generate SELECT ... FROM ... condition of the sql query, from a list of attribute names given by the user.
+            Always FROM PATIENT"""
         select_attributes = [self.map_attributes[attribute]["fhir_source"]["select"] for attribute in attributes if "select" in self.map_attributes[attribute]["fhir_source"]]
         select_attributes_flatten = [item for attributes in select_attributes for item in attributes]
-        return select_keyword + ", ".join(select_attributes_flatten) + " " + from_keyword +  self.map_attributes[attributes[0]]["fhir_resource"] 
+        return select_keyword + ", ".join(select_attributes_flatten) + " FROM Patient"
 
     def _join(self, attributes: List[str]) -> Optional[str]:
         """Generate INNER JOIN ... ON ... conditions of the sql query, from a list of attribute names given by the user"""
@@ -74,6 +74,8 @@ class FHIR2DS_Preprocessing():
         Returns:
             attributes: List of attributes updated with constraints on practioner, birthdate 
         """
+        if "Identifier" not in attributes:
+            attributes["Identifier"] = Attribute(official_name="Identifier",custom_name="Identifier",anonymize=False)
         if practitioner_id: 
             self._add_practitionner_id_condition(practitioner_id) 
             if "Practitioner" not in attributes:
