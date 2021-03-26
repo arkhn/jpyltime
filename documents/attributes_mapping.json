@@ -108,7 +108,7 @@
             }]
         },
         "display": {
-            "concatenate_columns": ["Height.valueQuantity.value", "Weight.valueQuantity.unit"],
+            "concatenate_columns": ["Height.valueQuantity.value", "Height.valueQuantity.unit"],
             "join_symbol": " "
         }
     },
