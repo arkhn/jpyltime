@@ -1,11 +1,15 @@
 """Set-up the FastAPI to communicate with fhir2dataset."""
 
-from typing import List
+from typing import List, Dict, Any
+import json
 
 import fhir2dataset as query
 from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+
+from jpyltime.utils import Attribute
+from jpyltime.preprocessing_fhir2ds import FHIR2DS_Preprocessing
+from jpyltime.postprocessing_fhir2ds import FHIR2DS_Postprocessing
 
 app = FastAPI()
 
@@ -16,14 +20,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-class Attribute(BaseModel):
-    """Define the data model for the attributes."""
-
-    official_name: str
-    custom_name: str
-    anonymize: bool
 
 
 @app.post("/fhir2dataset")
@@ -45,11 +41,17 @@ def fhir2dataset_route(
     Returns:
         JSON representation of the table containing the required data.
     """
-    # TODO
-    sql_query = """
-    SELECT Patient.name.family, Patient.address.city
-    FROM Patient
-    WHERE Patient.birthdate = 2000-01-01 AND Patient.gender = 'female'
-    """
-    df = query.sql(sql_query)
+    # preprocessing
+    d_attributes = {attribute.official_name : attribute for attribute in attributes}
+    sql_query, updated_d_attributes, updated_map_attributes = FHIR2DS_Preprocessing().preprocessing(d_attributes,practitioner_id)
+
+    # sql_query = """
+    # SELECT Patient.name.family, Patient.address.city
+    # FROM Patient
+    # WHERE Patient.birthdate = 2000-01-01 AND Patient.gender = 'female'
+    # """
+    sql_df = query.sql(sql_query)
+
+    # postprocessing
+    df = FHIR2DS_Postprocessing(updated_map_attributes).postprocessing(sql_df, updated_d_attributes, patient_ids)
     return df.to_json(orient="records")

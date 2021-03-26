@@ -11,10 +11,11 @@ equal_keyword = "="
 and_keyword = "AND "
 
 class FHIR2DS_Preprocessing():
-    def __init__(self, map_attributes : Dict[str, Any]):
+    def __init__(self, attribute_file : str="documents/attributes_mapping.json"):
         """map_attributes: a mapping of Column Name in natural language to FHIR information (resource name, source name and conditions)"""
-        self.map_attributes = map_attributes
-
+        with open(attribute_file, "r") as f:
+            self.map_attributes =  json.loads(f.read())
+        
 
     def _select(self, attributes: List[str]) -> str:
         """Generate SELECT ... FROM ... condition of the sql query, from a list of attribute names given by the user.
@@ -87,7 +88,11 @@ class FHIR2DS_Preprocessing():
         return attributes
 
 
-        return attributes, self.map_attributes
+    def _check_attributes_defined(self, attributes: Dict[str, Attribute]):
+        """Return an error if some attributes asked by the user are not defined in the fhir mapping dictionary"""
+        undefined_attributes = set(attributes.keys()).difference(set(self.map_attributes.keys()))
+        if undefined_attributes:
+            raise ValueError(f"Undefined attributes {undefined_attributes}, they must be defined in the attributes mapping dictionnary.")
 
     def generate_sql_query(self, d_attributes : Dict[str,Attribute]) -> str:
         """Generate a SQL query from a list of attribute.
@@ -104,6 +109,13 @@ class FHIR2DS_Preprocessing():
         sql_where = self._where(attributes)
         sql_query = "\n".join([sql_part for sql_part in [sql_select, sql_join, sql_where] if sql_part])
         return sql_query
+
+    def preprocessing(self, attributes: Dict[str, Attribute], practitioner_id:Optional[str]= None, patient_birthdate_condition: Optional[str] = None) -> Tuple[str, Dict[str, Attribute]]:
+        self._check_attributes_defined(attributes)
+
+        attributes = self.update_attributes(attributes, practitioner_id, patient_birthdate_condition)
+        sql_query = self.generate_sql_query(attributes)
+        return sql_query, attributes, self.map_attributes
 
 
 

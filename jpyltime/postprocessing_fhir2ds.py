@@ -21,6 +21,7 @@ class FHIR2DS_Postprocessing():
             Ex: combine value with quantity improve readibility: 
                 --  | patient.weight.value : 30 | patient.weight.unit : kg | 
                 ++  | Weight : 30 kg |
+            Replace col name with custom name
         """
         display_df = pd.DataFrame()
         display_df[patient_id_col] = df[patient_id_col]
