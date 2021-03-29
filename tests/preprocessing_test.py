@@ -13,8 +13,8 @@ def test_update_attributes():
     updated_attributes = preprocessing.update_attributes(d_attributes.copy(), patient_birthdate_condition=birthdate_condition)
 
     diff_attributes = set(updated_attributes.keys()).difference(set(d_attributes.keys()))
-    assert len(diff_attributes) == 2
-    assert diff_attributes == {'Identifier', 'Birthdate'}
+    assert len(diff_attributes) == 1
+    assert diff_attributes == {'Birthdate'}
     assert birthdate_attribute_name in updated_attributes
     assert "Patient.birthdate" in [where_condition["key"] for where_condition in preprocessing.map_attributes[birthdate_attribute_name]["fhir_source"]["where"] ]
     assert birthdate_condition in [where_condition["value"] for where_condition in preprocessing.map_attributes[birthdate_attribute_name]["fhir_source"]["where"] ]
@@ -31,8 +31,8 @@ def test_add_group_id():
     updated_attributes = preprocessing.update_attributes(d_attributes.copy(), group_id=group_id)
 
     diff_attributes = set(updated_attributes.keys()).difference(set(d_attributes.keys()))
-    assert len(diff_attributes) == 2
-    assert diff_attributes == {'Identifier', 'Group'}
+    assert len(diff_attributes) == 1
+    assert diff_attributes == {'Group'}
     assert "Group.identifier" in [where_condition["key"] for where_condition in preprocessing.map_attributes[group_attribute_name]["fhir_source"]["where"] ]
     assert group_id in [where_condition["value"] for where_condition in preprocessing.map_attributes[group_attribute_name]["fhir_source"]["where"] ] 
 
@@ -68,8 +68,7 @@ def test_preprocessing():
     query, updated_attributes, map_attributes = FHIR2DS_Preprocessing().preprocess(d_attributes.copy())
 
     diff_attributes = set(updated_attributes.keys()).difference(set(d_attributes.keys()))
-    assert len(diff_attributes) == 1
-    assert diff_attributes == {'Identifier'}
-    
-    true = """SELECT Patient.name.given, Patient.gender, ASAT.valueQuantity.value, ASAT.valueQuantity.unit, Potassium.valueQuantity.value, Potassium.valueQuantity.unit, Patient.identifier.value FROM Patient INNER JOIN Observation as ASAT ON ASAT.subject = Patient.id INNER JOIN Observation as Potassium ON Potassium.subject = Patient.id WHERE ASAT.code = http://loinc.org%7C1920-8 AND Potassium.code = http://loinc.org%7C2823-3"""
+    assert len(diff_attributes) == 0
+
+    true = """SELECT Patient.name.given, Patient.gender, ASAT.valueQuantity.value, ASAT.valueQuantity.unit, Potassium.valueQuantity.value, Potassium.valueQuantity.unit FROM Patient INNER JOIN Observation as ASAT ON ASAT.subject = Patient.id INNER JOIN Observation as Potassium ON Potassium.subject = Patient.id WHERE ASAT.code = http://loinc.org%7C1920-8 AND Potassium.code = http://loinc.org%7C2823-3"""
     assert query.split() == true.split()

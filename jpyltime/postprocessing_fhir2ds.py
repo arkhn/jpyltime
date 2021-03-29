@@ -54,7 +54,7 @@ class FHIR2DS_Postprocessing():
                 df[attribute.custom_name] = self.anonymization_symbol
         return df
 
-    def postprocess(self, df: pd.DataFrame, attributes : Dict[str, Attribute],patient_id_col: str) -> pd.DataFrame:
+    def postprocess(self, df: pd.DataFrame, attributes : Dict[str, Attribute]) -> pd.DataFrame:
         """Improve readibility and display of a given dataFrame, by:
             - Concatenated some columns, ex Value with Unit (| 30 | mg | => | 30 mg | )
             - Groupby one column to reduce redundancy 

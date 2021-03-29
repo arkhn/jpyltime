@@ -4,6 +4,8 @@ import json
 from jpyltime.utils import Attribute
 
 
+# FIXME Doesn't Fhir2Dataset provide some kind of SDK (a set of functions to build a query)?
+# As both jpyltime and F2D are written in python, it's a bit painful to see them communicate via a handwritten string
 class FHIR2DS_Preprocessing():
     def __init__(self, attribute_file : str="documents/attributes_mapping.json"):
         """map_attributes: a mapping of Column Name in natural language to FHIR information (resource name, source name and conditions)"""
@@ -59,6 +61,7 @@ class FHIR2DS_Preprocessing():
                     }]
 
 
+    # FIXME I don't think this method is really useful. Is it meant for restricting the resources to which the practitioner has access? If so, I don't think jpyltime should do that
     def update_attributes(self, attributes: Dict[str, Attribute], group_id: Optional[str] = None,  patient_birthdate_condition: Optional[str] = None):
         """Update a dict of attribute given by the user with restriction on the patient scope by specifying a group id and / or a birthdate condition.
 
@@ -70,8 +73,6 @@ class FHIR2DS_Preprocessing():
         Returns:
             attributes: List of attributes updated with constraints on practioner, birthdate 
         """
-        if "Identifier" not in attributes:
-            attributes["Identifier"] = Attribute(official_name="Identifier",custom_name="PatientID",anonymize=False)
         if group_id: 
             self._add_group_id_condition(group_id) 
             if "Group" not in attributes:
