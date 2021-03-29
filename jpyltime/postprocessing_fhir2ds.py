@@ -48,17 +48,15 @@ class FHIR2DS_Postprocessing():
                 df[attribute.custom_name] = self.anonymization_symbol
         return df
 
-    def postprocess(self, df: pd.DataFrame, attributes : Dict[str, Attribute], patient_ids : Optional[List[str]] = None ) -> pd.DataFrame:
+    def postprocess(self, df: pd.DataFrame, attributes : Dict[str, Attribute]) -> pd.DataFrame:
         """Improve readibility and display of a given dataFrame, by:
             - Concatenated some columns, ex Value with Unit (| 30 | mg | => | 30 mg | )
             - Groupby one column to reduce redundancy 
             - Anonymize sensitive data
-            - Filter on patient ids
 
         Args:
             df: DataFrame as outputted by FHIR2Dataset api
             attributes: Dict of attributes asked by user, with info on anonymization constraints and custom names
-            patient_ids: List of patients that should appears on the data. Defaults to None.
 
         Returns:
             pd.DataFrame: The dataFrame updated with the previous transformation.
@@ -67,8 +65,6 @@ class FHIR2DS_Postprocessing():
         df = self._concatenate_columns(df, attributes, patient_id_col)
         custom_patient_id_colname = attributes[patient_id_col].custom_name
         df = self._groupby_one_column(df, col_for_merging=custom_patient_id_colname)
-        if patient_ids:
-            df = self.restrict_patient_scope(df, patient_ids, custom_patient_id_colname)
             
         df = self.anonymize(df, attributes)
         return df.reset_index(drop=True)

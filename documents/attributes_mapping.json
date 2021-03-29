@@ -44,6 +44,17 @@
             }]
         }
     },
+    "Group" :
+    {
+        "fhir_resource":"Group",
+        "fhir_source":{
+            "select": ["Group.identifier.value"],
+            "join":[{
+                "key":"Group.member",
+                "value":"Patient.id"
+            }]
+        }
+    },
     "ICD-9 Diagnosis": {
         "fhir_resource": "Condition",
         "fhir_source": {

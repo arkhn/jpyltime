@@ -25,26 +25,25 @@ def test_update_attributes():
 
 
 
-def test_add_practitioner_id():
+def test_add_group_id():
     attributes = [Attribute(official_name="First name", custom_name="Prénom", anonymize = False), Attribute(official_name="Gender", custom_name="Sexe", anonymize = False), Attribute(official_name="ASAT", custom_name="ASAT", anonymize = False),Attribute(official_name="Potassium", custom_name="Potassium", anonymize = False)]
     d_attributes = {attribute.official_name : attribute for attribute in attributes}
-    practioner_attribute_name = "Practitioner"
-    practioner_id = "38de92"
+    group_attribute_name = "Group"
+    group_id = "38de92"
     
     preprocessing = FHIR2DS_Preprocessing()
-    updated_attributes = preprocessing.update_attributes(d_attributes.copy(), practitioner_id=practioner_id)
+    updated_attributes = preprocessing.update_attributes(d_attributes.copy(), group_id=group_id)
 
     diff_attributes = set(updated_attributes.keys()).difference(set(d_attributes.keys()))
     assert len(diff_attributes) == 2
-    assert diff_attributes == {'Identifier', 'Practitioner'}
-    assert "Practitioner.id" in [where_condition["key"] for where_condition in preprocessing.map_attributes[practioner_attribute_name]["fhir_source"]["where"] ]
-    assert practioner_id in [where_condition["value"] for where_condition in preprocessing.map_attributes[practioner_attribute_name]["fhir_source"]["where"] ] 
+    assert diff_attributes == {'Identifier', 'Group'}
+    assert "Group.id" in [where_condition["key"] for where_condition in preprocessing.map_attributes[group_attribute_name]["fhir_source"]["where"] ]
+    assert group_id in [where_condition["value"] for where_condition in preprocessing.map_attributes[group_attribute_name]["fhir_source"]["where"] ] 
 
     query = preprocessing.generate_sql_query(updated_attributes)
     
-    assert f"Practitioner.id = {practioner_id}" in query # Practioner id
-    assert "INNER JOIN Practitioner"
-    assert "Practitioner.id = Patient.general-practitioner" in query 
+    assert f"Group.id = {group_id}" in query # Group id
+    assert "INNER JOIN Group ON Group.member = Patient.id" in query
 
 
 
@@ -70,10 +69,8 @@ def test_complex_query():
 
     query = FHIR2DS_Preprocessing().generate_sql_query(d_attributes)
 
-    true = """SELECT Patient.name.given, Patient.gender, ASAT.valueQuantity.value, ASAT.valueQuantity.unit, Potassium.valueQuantity.value, Potassium.valueQuantity.unit FROM Patient
-    INNER JOIN Observation as ASAT ON ASAT.subject = Patient.id INNER JOIN Observation as Potassium ON Potassium.subject = Patient.id
-    WHERE ASAT.code = http://loinc.org%7C1920-8 AND Potassium.code = http://loinc.org%7C2823-3"""
-    assert query == true
+    true = """SELECT Patient.name.given, Patient.gender, ASAT.valueQuantity.value, ASAT.valueQuantity.unit, Potassium.valueQuantity.value, Potassium.valueQuantity.unit FROM Patient INNER JOIN Observation as ASAT ON ASAT.subject = Patient.id INNER JOIN Observation as Potassium ON Potassium.subject = Patient.id WHERE ASAT.code = http://loinc.org%7C1920-8 AND Potassium.code = http://loinc.org%7C2823-3"""
+    assert query.split() == true.split()
 
 def test_preprocessing():
     attributes = [Attribute(official_name="First name", custom_name="Prénom", anonymize = False), Attribute(official_name="Gender", custom_name="Sexe", anonymize = False), Attribute(official_name="ASAT", custom_name="ASAT", anonymize = False),Attribute(official_name="Potassium", custom_name="Potassium", anonymize = False)]
@@ -85,7 +82,5 @@ def test_preprocessing():
     assert len(diff_attributes) == 1
     assert diff_attributes == {'Identifier'}
     
-    true = """SELECT Patient.name.given, Patient.gender, ASAT.valueQuantity.value, ASAT.valueQuantity.unit, Potassium.valueQuantity.value, Potassium.valueQuantity.unit, Patient.identifier.value FROM Patient
-    INNER JOIN Observation as ASAT ON ASAT.subject = Patient.id INNER JOIN Observation as Potassium ON Potassium.subject = Patient.id
-    WHERE ASAT.code = http://loinc.org%7C1920-8 AND Potassium.code = http://loinc.org%7C2823-3"""
-    assert query == true
+    true = """SELECT Patient.name.given, Patient.gender, ASAT.valueQuantity.value, ASAT.valueQuantity.unit, Potassium.valueQuantity.value, Potassium.valueQuantity.unit, Patient.identifier.value FROM Patient INNER JOIN Observation as ASAT ON ASAT.subject = Patient.id INNER JOIN Observation as Potassium ON Potassium.subject = Patient.id WHERE ASAT.code = http://loinc.org%7C1920-8 AND Potassium.code = http://loinc.org%7C2823-3"""
+    assert query.split() == true.split()

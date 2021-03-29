@@ -50,7 +50,14 @@ class FHIR2DS_Preprocessing():
                     "value": str(practitioner_id)
                     }] 
         
-                
+    def _add_group_id_condition(self, group_id: str) :
+        """Add a condition on the patient scope when a group id is specified by the user"""
+        self.map_attributes["Group"]["fhir_source"]["where"] =[{ 
+                    "key": "Group.identifier", 
+                    "value": str(group_id)
+                    }] 
+
+
     def _add_patient_birthdate(self, birthdate_condition: str) :
         """Add a condition on the patient scope when a practioner id is specified by the user"""
         self.map_attributes["Birthdate"]["fhir_source"]["where"] = [{
@@ -58,12 +65,13 @@ class FHIR2DS_Preprocessing():
                         "value": str(birthdate_condition)
                     }]
 
-    def update_attributes(self, attributes: Dict[str, Attribute], practitioner_id: Optional[str] = None,  patient_birthdate_condition: Optional[str] = None):
-        """Update a dict of attribute given by the user with restriction on the patient scope by specifying a practioner id and / or a birthdate condition.
+
+    def update_attributes(self, attributes: Dict[str, Attribute], group_id: Optional[str] = None,  patient_birthdate_condition: Optional[str] = None):
+        """Update a dict of attribute given by the user with restriction on the patient scope by specifying a group id and / or a birthdate condition.
 
         Args:
             attributes (Dict[Attribute]): Dict of attributes that must appear in the SQL query
-            practitioner_id (Optional[str]): Practioner id to restrict the scope of the query to specific patient from a practioner. Defaults to None.
+            group_id (Optional[str]): Group id to restrict the scope of the query to patients from a specific cohort. Defaults to None.
             patient_birthdate_condition (Optional[str]): Condition on the patient birthdate in str format. Ex: ge2000-01-01
 
         Returns:
@@ -71,10 +79,10 @@ class FHIR2DS_Preprocessing():
         """
         if "Identifier" not in attributes:
             attributes["Identifier"] = Attribute(official_name="Identifier",custom_name="PatientID",anonymize=False)
-        if practitioner_id: 
-            self._add_practitionner_id_condition(practitioner_id) 
-            if "Practitioner" not in attributes:
-                attributes["Practitioner"] = Attribute(official_name="Practitioner",custom_name="Practitioner",anonymize=False)
+        if group_id: 
+            self._add_group_id_condition(group_id) 
+            if "Group" not in attributes:
+                attributes["Group"] = Attribute(official_name="Group",custom_name="Cohort",anonymize=False)
         if patient_birthdate_condition:
             self._add_patient_birthdate(patient_birthdate_condition)
             if "Birthdate" not in attributes:
@@ -104,7 +112,7 @@ class FHIR2DS_Preprocessing():
         sql_query = "\n".join([sql_part for sql_part in [sql_select, sql_join, sql_where] if sql_part])
         return sql_query
 
-    def preprocess(self, attributes: Dict[str, Attribute], practitioner_id:Optional[str]= None, patient_birthdate_condition: Optional[str] = None) -> Tuple[str, Dict[str, Attribute], Dict[str,Any]]:
+    def preprocess(self, attributes: Dict[str, Attribute], group_id:Optional[str]= None, patient_birthdate_condition: Optional[str] = None) -> Tuple[str, Dict[str, Attribute], Dict[str,Any]]:
         """Adapt a list of attributes to generate a correct sql query to request the fhir api
 
         Args:
@@ -120,7 +128,7 @@ class FHIR2DS_Preprocessing():
         """
         self._check_attributes_defined(attributes)
 
-        attributes = self.update_attributes(attributes, practitioner_id, patient_birthdate_condition)
+        attributes = self.update_attributes(attributes, group_id, patient_birthdate_condition)
         sql_query = self.generate_sql_query(attributes)
         return sql_query, attributes, self.map_attributes
 
