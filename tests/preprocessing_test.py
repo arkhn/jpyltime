@@ -70,31 +70,22 @@ def test_complex_query():
 
     query = FHIR2DS_Preprocessing().generate_sql_query(d_attributes)
 
-    assert "Patient.name.given" in query # First Name
-    assert "Patient.gender" in query # Gender
-    assert "ASAT.valueQuantity.value" in query # ASAT
-    assert "ASAT.valueQuantity.unit" in query # ASAT
-    assert "ASAT.code = http://loinc.org%7C1920-8" in query # ASAT
-    assert "Potassium.valueQuantity.value" in query # Potassium
-    assert "Potassium.valueQuantity.unit" in query # Potassium
-    assert "Potassium.code = http://loinc.org%7C2823-3" in query # Potassium
-
+    true = """SELECT Patient.name.given, Patient.gender, ASAT.valueQuantity.value, ASAT.valueQuantity.unit, Potassium.valueQuantity.value, Potassium.valueQuantity.unit FROM Patient
+    INNER JOIN Observation as ASAT ON ASAT.subject = Patient.id INNER JOIN Observation as Potassium ON Potassium.subject = Patient.id
+    WHERE ASAT.code = http://loinc.org%7C1920-8 AND Potassium.code = http://loinc.org%7C2823-3"""
+    assert query == true
 
 def test_preprocessing():
     attributes = [Attribute(official_name="First name", custom_name="Prénom", anonymize = False), Attribute(official_name="Gender", custom_name="Sexe", anonymize = False), Attribute(official_name="ASAT", custom_name="ASAT", anonymize = False),Attribute(official_name="Potassium", custom_name="Potassium", anonymize = False)]
     d_attributes = {attribute.official_name : attribute for attribute in attributes}
 
-    query, updated_attributes, map_attributes = FHIR2DS_Preprocessing().preprocessing(d_attributes.copy())
+    query, updated_attributes, map_attributes = FHIR2DS_Preprocessing().preprocess(d_attributes.copy())
 
     diff_attributes = set(updated_attributes.keys()).difference(set(d_attributes.keys()))
     assert len(diff_attributes) == 1
     assert diff_attributes == {'Identifier'}
-
-    assert "Patient.name.given" in query # First Name
-    assert "Patient.gender" in query # Gender
-    assert "ASAT.valueQuantity.value" in query # ASAT
-    assert "ASAT.valueQuantity.unit" in query # ASAT
-    assert "ASAT.code = http://loinc.org%7C1920-8" in query # ASAT
-    assert "Potassium.valueQuantity.value" in query # Potassium
-    assert "Potassium.valueQuantity.unit" in query # Potassium
-    assert "Potassium.code = http://loinc.org%7C2823-3" in query # Potassium
+    
+    true = """SELECT Patient.name.given, Patient.gender, ASAT.valueQuantity.value, ASAT.valueQuantity.unit, Potassium.valueQuantity.value, Potassium.valueQuantity.unit, Patient.identifier.value FROM Patient
+    INNER JOIN Observation as ASAT ON ASAT.subject = Patient.id INNER JOIN Observation as Potassium ON Potassium.subject = Patient.id
+    WHERE ASAT.code = http://loinc.org%7C1920-8 AND Potassium.code = http://loinc.org%7C2823-3"""
+    assert query == true

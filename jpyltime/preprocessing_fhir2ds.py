@@ -3,12 +3,6 @@ import json
 
 from jpyltime.utils import Attribute
 
-where_keyword = "WHERE "
-select_keyword = "SELECT "
-join_keyword = "INNER JOIN"
-on_keyword = "ON"
-equal_keyword = "="
-and_keyword = "AND "
 
 class FHIR2DS_Preprocessing():
     def __init__(self, attribute_file : str="documents/attributes_mapping.json"):
@@ -22,7 +16,7 @@ class FHIR2DS_Preprocessing():
             Always FROM PATIENT"""
         select_attributes = [self.map_attributes[attribute]["fhir_source"]["select"] for attribute in attributes if "select" in self.map_attributes[attribute]["fhir_source"]]
         select_attributes_flatten = [item for attributes in select_attributes for item in attributes]
-        return select_keyword + ", ".join(select_attributes_flatten) + " FROM Patient"
+        return f"SELECT {', '.join(select_attributes_flatten)} FROM Patient"
 
     def _join(self, attributes: List[str]) -> Optional[str]:
         """Generate INNER JOIN ... ON ... conditions of the sql query, from a list of attribute names given by the user"""
@@ -30,7 +24,7 @@ class FHIR2DS_Preprocessing():
         for attribute in attributes:
             if "join" in self.map_attributes[attribute]["fhir_source"]:
                 for join_condition in self.map_attributes[attribute]["fhir_source"]["join"]: 
-                    sql_join.append(" ".join([join_keyword,self.map_attributes[attribute]["fhir_resource"],on_keyword , join_condition["key"],equal_keyword, join_condition["value"]]))
+                    sql_join.append(" ".join(["INNER JOIN", self.map_attributes[attribute]["fhir_resource"], "ON" , join_condition["key"], "=" , join_condition["value"]]))
         if not sql_join:
             return ""
         return " ".join(sql_join)
@@ -43,10 +37,10 @@ class FHIR2DS_Preprocessing():
             map_attribute = self.map_attributes[attribute]
             if "where" in map_attribute["fhir_source"]:
                 for where_condition in map_attribute["fhir_source"]["where"] :
-                    where_conditions.append(" ".join([where_condition["key"],equal_keyword,where_condition["value"]]))
+                    where_conditions.append(" ".join([where_condition["key"], "=", where_condition["value"]]))
         if not where_conditions:
             return ""
-        return where_keyword +(" "+and_keyword).join(where_conditions)
+        return f"WHERE {' AND '.join(where_conditions)}"
 
 
     def _add_practitionner_id_condition(self, practitioner_id: str) :
@@ -110,7 +104,7 @@ class FHIR2DS_Preprocessing():
         sql_query = "\n".join([sql_part for sql_part in [sql_select, sql_join, sql_where] if sql_part])
         return sql_query
 
-    def preprocessing(self, attributes: Dict[str, Attribute], practitioner_id:Optional[str]= None, patient_birthdate_condition: Optional[str] = None) -> Tuple[str, Dict[str, Attribute], Dict[str,Any]]:
+    def preprocess(self, attributes: Dict[str, Attribute], practitioner_id:Optional[str]= None, patient_birthdate_condition: Optional[str] = None) -> Tuple[str, Dict[str, Attribute], Dict[str,Any]]:
         """Adapt a list of attributes to generate a correct sql query to request the fhir api
 
         Args:

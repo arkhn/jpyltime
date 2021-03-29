@@ -25,10 +25,9 @@ def test_postprocessing():
         map_attributes =  json.loads(f.read())
     anonymization_symbol= "*"
     postprocessing = FHIR2DS_Postprocessing(map_attributes, anonymization_symbol=anonymization_symbol)
-    display_df = postprocessing.postprocessing(df, d_attributes, patient_ids)
+    display_df = postprocessing.postprocess(df, d_attributes, patient_ids)
 
-    assert len(display_df) == 2
-    assert display_df["PatientID"].is_unique 
-    assert display_df.iloc[0]["Prénom"] == {"tom", "nick"}
-    assert display_df.iloc[0]["Poids"] == {"90 kg", "50 kg"}
-    assert all(display_df[display_df["Anniversaire"] ==  anonymization_symbol])
+    true_columns = ["PatientID","Prénom","Poids","Médicaments","Anniversaire"]
+    true = pd.DataFrame([['8392', {'tom', 'nick'}, {'50 kg', '90 kg'}, {'ICD 8493 L', 'ICD 22 mg'}, '*'], ['9382', {'julie'}, {'92 kg'}, {'ICD 38 L'}, '*']], columns = true_columns)
+
+    assert true.equals(display_df)

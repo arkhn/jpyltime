@@ -27,7 +27,7 @@ class FHIR2DS_Postprocessing():
         patient_id_colname = self.map_attributes[patient_id_col]["fhir_source"]["select"][0]
         df = df.dropna(subset=[patient_id_colname])
         display_df = pd.DataFrame()
-        display_df[attributes[patient_id_col].custom_name] = df[patient_id_colname].apply(lambda x: x[0] if type(x) == list else x)
+        display_df[attributes[patient_id_col].custom_name] = df[patient_id_colname].apply(lambda x: x[0] if isinstance(x, list) else x)
         for attribute in attributes.values():
             if attribute.official_name != patient_id_col:
                 attribute_info = self.map_attributes[attribute.official_name]
@@ -42,13 +42,13 @@ class FHIR2DS_Postprocessing():
         return df[df[patient_id_col].isin(patient_ids)]
 
     def anonymize(self, df: pd.DataFrame, attributes: Dict[str, Attribute]) -> pd.DataFrame:
-        """Anonymized columns by replacing value with a symbol"""
+        """Anonymize columns by replacing value with a symbol"""
         for attribute in attributes.values():
             if attribute.anonymize:
                 df[attribute.custom_name] = self.anonymization_symbol
         return df
 
-    def postprocessing(self, df: pd.DataFrame, attributes : Dict[str, Attribute], patient_ids : Optional[List[str]] = None ) -> pd.DataFrame:
+    def postprocess(self, df: pd.DataFrame, attributes : Dict[str, Attribute], patient_ids : Optional[List[str]] = None ) -> pd.DataFrame:
         """Improve readibility and display of a given dataFrame, by:
             - Concatenated some columns, ex Value with Unit (| 30 | mg | => | 30 mg | )
             - Groupby one column to reduce redundancy 
@@ -71,5 +71,5 @@ class FHIR2DS_Postprocessing():
             df = self.restrict_patient_scope(df, patient_ids, custom_patient_id_colname)
             
         df = self.anonymize(df, attributes)
-        return df
+        return df.reset_index(drop=True)
 

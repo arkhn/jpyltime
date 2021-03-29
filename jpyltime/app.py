@@ -24,7 +24,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+#  TODO: configure a logger
 @app.post("/fhir2dataset")
 def fhir2dataset_route(
     practitioner_id: str = Body(...),
@@ -45,16 +45,15 @@ def fhir2dataset_route(
         JSON representation of the table containing the required data.
     """
     # preprocessing
-    d_attributes = {attribute.official_name : attribute for attribute in attributes}
-    sql_query, updated_d_attributes, updated_map_attributes = FHIR2DS_Preprocessing().preprocessing(d_attributes)
+    requested_attributes = {attribute.official_name : attribute for attribute in attributes}
+    sql_query, updated_requested_attributes, updated_map_attributes = FHIR2DS_Preprocessing().preprocess(requested_attributes)
     print(sql_query)
     
     sql_df = query.sql(sql_query, fhir_api_url=settings.FHIR_API_URL, token=practitioner_id)
     print(sql_df.head())
 
     # postprocessing
-    df = FHIR2DS_Postprocessing(updated_map_attributes).postprocessing(sql_df, updated_d_attributes, patient_ids)
-
+    df = FHIR2DS_Postprocessing(updated_map_attributes).postprocess(sql_df, updated_requested_attributes, patient_ids)
     response = StreamingResponse(io.StringIO(df.to_csv(index=False)), media_type="text/csv")
     response.headers["Content-Disposition"] = "attachment; filename=export.csv"
 
