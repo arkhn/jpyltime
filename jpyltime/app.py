@@ -2,7 +2,7 @@
 
 from typing import List, Dict, Any
 import json
-import settings
+import jpyltime.settings as settings
 import io
 
 import fhir2dataset as query

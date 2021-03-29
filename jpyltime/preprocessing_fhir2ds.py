@@ -7,7 +7,7 @@ from jpyltime.utils import Attribute
 # FIXME Doesn't Fhir2Dataset provide some kind of SDK (a set of functions to build a query)?
 # As both jpyltime and F2D are written in python, it's a bit painful to see them communicate via a handwritten string
 class FHIR2DS_Preprocessing():
-    def __init__(self, attribute_file : str="documents/attributes_mapping.json"):
+    def __init__(self, attribute_file : str="jpyltime/documents/attributes_mapping.json"):
         """map_attributes: a mapping of Column Name in natural language to FHIR information (resource name, source name and conditions)"""
         with open(attribute_file, "r") as f:
             self.map_attributes =  json.loads(f.read())
