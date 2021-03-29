@@ -34,7 +34,8 @@ class FHIR2DS_Postprocessing():
                 if "display" in attribute_info:
                     display_df[attribute.custom_name] = df[attribute_info["display"]["concatenate_columns"]].apply(lambda row: attribute_info["display"]["join_symbol"].join(row.values.astype(str)), axis=1)
                 else:
-                    display_df[attribute.custom_name] = df[attribute_info["fhir_source"]["select"][0]]
+                    flatten_column_data = df[attribute_info["fhir_source"]["select"][0]].apply(lambda x:[item for sublist in x for item in sublist][0] if isinstance(x, list) else x)
+                    display_df[attribute.custom_name] = flatten_column_data
         return display_df
 
     def restrict_patient_scope(self, df: pd.DataFrame, patient_ids: List[str], patient_id_col: str) -> pd.DataFrame:
