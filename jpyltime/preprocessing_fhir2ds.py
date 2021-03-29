@@ -43,13 +43,6 @@ class FHIR2DS_Preprocessing():
         return f"WHERE {' AND '.join(where_conditions)}"
 
 
-    def _add_practitionner_id_condition(self, practitioner_id: str) :
-        """Add a condition on the patient scope when a practioner id is specified by the user"""
-        self.map_attributes["Practitioner"]["fhir_source"]["where"] =[{ 
-                    "key": "Practitioner.id", 
-                    "value": str(practitioner_id)
-                    }] 
-        
     def _add_group_id_condition(self, group_id: str) :
         """Add a condition on the patient scope when a group id is specified by the user"""
         self.map_attributes["Group"]["fhir_source"]["where"] =[{ 

@@ -39,7 +39,7 @@ def fhir2dataset_route(
         - `official_name`,
         - `custom_name`,
         - `anonymize`;
-    * `patient_ids`: identifiers of the patients to output.
+    * `group_id`: identifier of the group of patient to output.
 
     Returns:
         JSON representation of the table containing the required data.

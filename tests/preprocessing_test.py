@@ -37,7 +37,7 @@ def test_add_group_id():
     diff_attributes = set(updated_attributes.keys()).difference(set(d_attributes.keys()))
     assert len(diff_attributes) == 2
     assert diff_attributes == {'Identifier', 'Group'}
-    assert "Group.id" in [where_condition["key"] for where_condition in preprocessing.map_attributes[group_attribute_name]["fhir_source"]["where"] ]
+    assert "Group.identifier" in [where_condition["key"] for where_condition in preprocessing.map_attributes[group_attribute_name]["fhir_source"]["where"] ]
     assert group_id in [where_condition["value"] for where_condition in preprocessing.map_attributes[group_attribute_name]["fhir_source"]["where"] ] 
 
     query = preprocessing.generate_sql_query(updated_attributes)

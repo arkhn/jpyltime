@@ -19,15 +19,14 @@ def test_postprocessing():
     df = example_dataframe()
     attributes = [Attribute(official_name="Identifier", custom_name="PatientID", anonymize = False),Attribute(official_name="First name", custom_name="Prénom", anonymize = False), Attribute(official_name="Weight", custom_name="Poids", anonymize = False), Attribute(official_name="Medication", custom_name="Médicaments", anonymize = False),Attribute(official_name="Birthdate", custom_name="Anniversaire", anonymize = True)]
     d_attributes = {attribute.official_name : attribute for attribute in attributes}
-    patient_ids = ["8392", "9382"]
 
     with open(attribute_file, "r") as f:
         map_attributes =  json.loads(f.read())
     anonymization_symbol= "*"
     postprocessing = FHIR2DS_Postprocessing(map_attributes, anonymization_symbol=anonymization_symbol)
-    display_df = postprocessing.postprocess(df, d_attributes, patient_ids)
+    display_df = postprocessing.postprocess(df, d_attributes)
 
     true_columns = ["PatientID","Prénom","Poids","Médicaments","Anniversaire"]
-    true = pd.DataFrame([['8392', {'tom', 'nick'}, {'50 kg', '90 kg'}, {'ICD 8493 L', 'ICD 22 mg'}, '*'], ['9382', {'julie'}, {'92 kg'}, {'ICD 38 L'}, '*']], columns = true_columns)
+    true = pd.DataFrame([['3728', {'john'}, {'20 kg'}, {'ICD 22 mg'}, '*'], ['8392', {'tom', 'nick'}, {'50 kg', '90 kg'}, {'ICD 8493 L', 'ICD 22 mg'}, '*'], ['9382', {'julie'}, {'92 kg'}, {'ICD 38 L'}, '*']], columns = true_columns)
 
     assert true.equals(display_df)
