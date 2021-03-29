@@ -3,10 +3,6 @@ from jpyltime.preprocessing_fhir2ds import FHIR2DS_Preprocessing
 from jpyltime.utils import Attribute
 
 
-global attribute_file
-attribute_file = "documents/attributes_mapping.json"
-
-
 def test_update_attributes():    
     attributes = [Attribute(official_name="First name", custom_name="Prénom", anonymize = False), Attribute(official_name="Gender", custom_name="Sexe", anonymize = False), Attribute(official_name="ASAT", custom_name="ASAT", anonymize = False),Attribute(official_name="Potassium", custom_name="Potassium", anonymize = False)]
     d_attributes = {attribute.official_name : attribute for attribute in attributes}
@@ -42,7 +38,7 @@ def test_add_group_id():
 
     query = preprocessing.generate_sql_query(updated_attributes)
     
-    assert f"Group.id = {group_id}" in query # Group id
+    assert f"Group.identifier = {group_id}" in query # Group id
     assert "INNER JOIN Group ON Group.member = Patient.id" in query
 
 
@@ -54,13 +50,6 @@ def test_simple_query():
     query =FHIR2DS_Preprocessing().generate_sql_query(d_attributes)
     assert true == query
 
-
-# def test_wrong_attribute(sql_query):
-#     with open(attribute_file, "r") as f:
-#         map_attributes =  json.loads(f.read())
-
-#     attributes = ["First name", "Sky"]
-#     query = FHIR2DS_Preprocessing(map_attributes).generate_sql_query(attributes)
 
 
 def test_complex_query():
