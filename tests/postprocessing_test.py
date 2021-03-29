@@ -3,6 +3,13 @@ import pandas as pd
 from jpyltime.postprocessing_fhir2ds import FHIR2DS_Postprocessing
 from jpyltime.utils import Attribute
 
+import pytest
+
+@pytest.fixture
+def attribute_file():
+    attribute_file = "documents/attributes_mapping.json"
+    return attribute_file
+
 def example_dataframe():
     data = [["8392", 'tom', 10,"ICD", 22, "mg", 50, "kg", "2019-20-20"], ["8392", 'tom', 1, "ICD",8493, "L", 50, "kg"], ["8392", 'nick', 10,"ICD", 22, "mg", 90, "kg"], ["9382", 'julie', 1,"ICD", 38, "L", 92, "kg"], ["3728",'john', 10, "ICD",22, "mg" ,20, "kg"]]   
     # Create the pandas DataFrame 
@@ -11,7 +18,7 @@ def example_dataframe():
         'Weight.valueQuantity.unit', 'Patient.birthDate'])
     return df
 
-def test_postprocessing(attribute_file : str= "documents/attributes_mapping.json"):
+def test_postprocessing(attribute_file):
     df = example_dataframe()
     attributes = [Attribute(official_name="First name", custom_name="Prénom", anonymize = False), Attribute(official_name="Weight", custom_name="Poids", anonymize = False), Attribute(official_name="Medication", custom_name="Médicaments", anonymize = False),Attribute(official_name="Birthdate", custom_name="Anniversaire", anonymize = True)]
     d_attributes = {attribute.official_name : attribute for attribute in attributes}
