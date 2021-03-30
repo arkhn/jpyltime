@@ -49,12 +49,12 @@ def test_postprocessing(map_attributes, example_dataframe, attributes):
     )
     display_df = postprocessing.postprocess(example_dataframe, attributes)
 
-    true_columns = ["Patient:from_id", "Prénom", "Poids", "Médicaments", "Anniversaire"]
+    true_columns = ["Prénom", "Poids", "Médicaments", "Anniversaire"]
     true = pd.DataFrame(
         [
-            ["3728", {"john"}, {"20 kg"}, {"ICD 22 mg"}, "*"],
-            ["8392", {"tom", "nick"}, {"50 kg", "90 kg"}, {"ICD 8493 L", "ICD 22 mg"}, "*"],
-            ["9382", {"julie"}, {"92 kg"}, {"ICD 38 L"}, "*"],
+            ["*", "20 kg", "ICD 22 mg", None],
+            ["*", ["50 kg", "90 kg"], ["ICD 8493 L", "ICD 22 mg"], "2019-20-20"],
+            ["*", "92 kg", "ICD 38 L", None],
         ],
         columns=true_columns,
     )

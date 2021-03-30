@@ -19,7 +19,19 @@ class FHIR2DS_Postprocessing:
             raise Exception(
                 f"Impossible to merge on column name {col_for_merging} as it is not present in the dataframe: {df.columns}"
             )
-        return df.groupby(by=[col_for_merging]).agg(lambda x: set(x[x.notna()])).reset_index()
+        # FIXME: Avoid multiple similar values by removing duplicates and returning eiter element or list.
+        # Correct way should be :
+        #   - to keep only one value for column coming from main table (ie Patient here)
+        #   - and returning list (without duplicates removal) for columns from other tables (to keep values and temporality)
+        def reduce(x):
+            x = set(x[x.notna()])
+            if not x:
+                return None
+            if len(x) == 1:
+                return next(iter(x))
+            return list(x)
+
+        return df.groupby(by=[col_for_merging]).agg(lambda x: reduce(x)).reset_index()
 
     def _concatenate_columns(
         self, df: pd.DataFrame, attributes: Dict[str, Attribute], patient_id_colname: str
