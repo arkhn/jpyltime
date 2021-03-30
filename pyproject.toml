@@ -22,6 +22,7 @@ pytest-cov = "*"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
 [tool.black]
 line-length = 100
 target-version = ['py36', 'py37', 'py38']
@@ -44,13 +45,4 @@ exclude = '''
 [tool.isort]
 profile = 'black'
 line_length = 100
-known_local_folder = [
-    'pyckaxe',
-    'pyclasso',
-    'pylone',
-    'pyoner',
-    'pypa',
-    'pyramid',
-    'pyrana',
-    'tests'
-]
+
