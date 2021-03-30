@@ -13,7 +13,7 @@ def test_add_group_id(attributes):
     preprocessing = FHIR2DS_Preprocessing(group_id=group_id)
     query = preprocessing.generate_sql_query(attributes)
 
-    assert f"Group.identifier = {group_id}" in query  # Group id
+    assert f"Group._id = {group_id}" in query  # Group id
     assert "INNER JOIN Group ON Group.member = Patient._id" in query
 
 
