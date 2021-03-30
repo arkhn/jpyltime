@@ -90,4 +90,5 @@ class FHIR2DS_Postprocessing:
         df = self._concatenate_columns(df, attributes, patient_index)
         df = self._groupby_one_column(df, col_for_merging=patient_index)
         df = self.anonymize(df, attributes)
+        df.drop(columns=[patient_index], inplace=True)
         return df.reset_index(drop=True)
