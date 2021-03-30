@@ -52,7 +52,7 @@ class FHIR2DS_Preprocessing:
                         )
                     )
         if self.group_id:
-            sql_join.append(f"INNER JOIN Group ON Group.member = Patient.id")
+            sql_join.append(f"INNER JOIN Group ON Group.member = Patient._id")
         if not sql_join:
             return ""
         return " ".join(sql_join)

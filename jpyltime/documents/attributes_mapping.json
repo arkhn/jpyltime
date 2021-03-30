@@ -39,7 +39,7 @@
         "fhir_resource": "Practitioner",
         "fhir_source": {
             "join": [{
-                "key": "Practitioner.id",
+                "key": "Practitioner._id",
                 "value": "Patient.general-practitioner"
             }]
         }
@@ -51,7 +51,7 @@
             "select": ["Group.identifier.value"],
             "join":[{
                 "key":"Group.member",
-                "value":"Patient.id"
+                "value":"Patient._id"
             }]
         }
     },
@@ -61,7 +61,7 @@
             "select": ["Condition.code.coding.code", "Condition.code.coding.display"],
             "join": [{
                 "key": "Condition.subject",
-                "value": "Patient.id"
+                "value": "Patient._id"
             }],
             "where": [{
                 "key": "Condition.code",
@@ -79,7 +79,7 @@
             "select": ["MedicationRequest.medicationCodeableConcept.coding.display", "MedicationRequest.dosageInstruction.doseAndRate.doseQuantity.value", "MedicationRequest.dosageInstruction.doseAndRate.doseQuantity.unit"],
             "join": [{
                 "key": "MedicationRequest.subject",
-                "value": "Patient.id"
+                "value": "Patient._id"
             }]
         },
         "display": {
@@ -93,7 +93,7 @@
             "select": ["Weight.valueQuantity.value", "Weight.valueQuantity.unit"],
             "join": [{
                 "key": "Weight.subject",
-                "value": "Patient.id"
+                "value": "Patient._id"
             }],
             "where": [{
                 "key": "Weight.code",
@@ -111,7 +111,7 @@
             "select": ["Height.valueQuantity.value", "Height.valueQuantity.unit"],
             "join": [{
                 "key": "Height.subject",
-                "value": "Patient.id"
+                "value": "Patient._id"
             }],
             "where": [{
                 "key": "Height.code",
@@ -129,7 +129,7 @@
             "select": ["Albumin.valueQuantity.value", "Albumin.valueQuantity.unit"],
             "join": [{
                 "key": "Albumin.subject",
-                "value": "Patient.id"
+                "value": "Patient._id"
             }],
             "where": [{
                 "key": "Albumin.code",
@@ -147,7 +147,7 @@
             "select": ["Creatinin.valueQuantity.value", "Creatinin.valueQuantity.unit"],
             "join": [{
                 "key": "Creatinin.subject",
-                "value": "Patient.id"
+                "value": "Patient._id"
             }],
             "where": [{
                 "key": "Creatinin.code",
@@ -165,7 +165,7 @@
             "select": ["Glucose.valueQuantity.value", "Glucose.valueQuantity.unit"],
             "join": [{
                 "key": "Glucose.subject",
-                "value": "Patient.id"
+                "value": "Patient._id"
             }],
             "where": [{
                 "key": "Glucose.code",
@@ -183,7 +183,7 @@
             "select": ["Bilirubin.valueQuantity.value", "Bilirubin.valueQuantity.unit"],
             "join": [{
                 "key": "Bilirubin.subject",
-                "value": "Patient.id"
+                "value": "Patient._id"
             }],
             "where": [{
                 "key": "Bilirubin.code",
@@ -201,7 +201,7 @@
             "select": ["Magnesium.valueQuantity.value", "Magnesium.valueQuantity.unit"],
             "join": [{
                 "key": "Magnesium.subject",
-                "value": "Patient.id"
+                "value": "Patient._id"
             }],
             "where": [{
                 "key": "Magnesium.code",
@@ -219,7 +219,7 @@
             "select": ["Sodium.valueQuantity.value", "Sodium.valueQuantity.unit"],
             "join": [{
                 "key": "Sodium.subject",
-                "value": "Patient.id"
+                "value": "Patient._id"
             }],
             "where": [{
                 "key": "Sodium.code",
@@ -237,7 +237,7 @@
             "select": ["Potassium.valueQuantity.value", "Potassium.valueQuantity.unit"],
             "join": [{
                 "key": "Potassium.subject",
-                "value": "Patient.id"
+                "value": "Patient._id"
             }],
             "where": [{
                 "key": "Potassium.code",
@@ -255,7 +255,7 @@
             "select": ["ALAT.valueQuantity.value", "ALAT.valueQuantity.unit"],
             "join": [{
                 "key": "ALAT.subject",
-                "value": "Patient.id"
+                "value": "Patient._id"
             }],
             "where": [{
                 "key": "ALAT.code",
@@ -273,7 +273,7 @@
             "select": ["ASAT.valueQuantity.value", "ASAT.valueQuantity.unit"],
             "join": [{
                 "key": "ASAT.subject",
-                "value": "Patient.id"
+                "value": "Patient._id"
             }],
             "where": [{
                 "key": "ASAT.code",
