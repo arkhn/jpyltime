@@ -8,9 +8,9 @@ from fastapi.testclient import TestClient
 from jpyltime.app import Attribute
 
 
-@pytest.mark.parametrize("practitioner_id, attributes, patient_ids", [])
+@pytest.mark.parametrize("practitioner_id, attributes, group_id", [])
 def test_fhir2dataset(
-    client: TestClient, practitioner_id: str, attributes: List[Attribute], patient_ids: List[str]
+    client: TestClient, practitioner_id: str, attributes: List[Attribute], group_id: str
 ):
     """Test a call to to the API of fhir2dataset."""
     response = client.post(
@@ -18,7 +18,7 @@ def test_fhir2dataset(
         json={
             "practitioner_id": practitioner_id,
             "attributes": attributes,
-            "patient_ids": patient_ids,
+            "group_id": group_id,
         },
     )
     assert response.status_code == 200

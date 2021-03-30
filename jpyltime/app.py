@@ -1,13 +1,18 @@
 """Set-up the FastAPI to communicate with fhir2dataset."""
 
 import io
-from typing import List
+import json
+from typing import Any, Dict, List
 
 import fhir2dataset as query
 from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+
+import jpyltime.settings as settings
+from jpyltime.postprocessing_fhir2ds import FHIR2DS_Postprocessing
+from jpyltime.preprocessing_fhir2ds import FHIR2DS_Preprocessing
+from jpyltime.utils import Attribute
 
 app = FastAPI()
 
@@ -19,20 +24,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-class Attribute(BaseModel):
-    """Define the data model for the attributes."""
-
-    official_name: str
-    custom_name: str
-    anonymize: bool
-
-
+#  TODO: configure a logger
 @app.post("/fhir2dataset")
 def fhir2dataset_route(
     practitioner_id: str = Body(...),
     attributes: List[Attribute] = Body(...),
-    patient_ids: List[str] = Body(...),
+    group_id: str = Body(...),
 ) -> StreamingResponse:
     """Route to call fhir2dataset & it's wrapping functions.
 
@@ -42,19 +39,23 @@ def fhir2dataset_route(
         - `official_name`,
         - `custom_name`,
         - `anonymize`;
-    * `patient_ids`: identifiers of the patients to output.
+    * `group_id`: identifier of the group of patient to output.
 
     Returns:
         JSON representation of the table containing the required data.
     """
-    # TODO
-    sql_query = """
-    SELECT Patient.name.family, Patient.address.city
-    FROM Patient
-    WHERE Patient.birthdate = 2000-01-01 AND Patient.gender = 'female'
-    """
-    df = query.sql(sql_query)
+    # preprocessing
+    requested_attributes = {attribute.official_name: attribute for attribute in attributes}
+    sql_query, updated_map_attributes = FHIR2DS_Preprocessing(group_id=group_id).preprocess(
+        requested_attributes
+    )
+    print(sql_query)
 
+    sql_df = query.sql(sql_query, fhir_api_url=settings.FHIR_API_URL, token=practitioner_id)
+    print(sql_df.head())
+
+    # postprocessing
+    df = FHIR2DS_Postprocessing(updated_map_attributes).postprocess(sql_df, requested_attributes)
     response = StreamingResponse(io.StringIO(df.to_csv(index=False)), media_type="text/csv")
     response.headers["Content-Disposition"] = "attachment; filename=export.csv"
 

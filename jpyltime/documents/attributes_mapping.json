@@ -1,0 +1,288 @@
+{
+    "Identifier": {
+        "fhir_resource": "Patient",
+        "fhir_source": {
+            "select": ["Patient.identifier.value"]
+        }
+    },
+    "Last name": {
+        "fhir_resource": "Patient",
+        "fhir_source": {
+            "select": ["Patient.name.family"]
+        }
+    },
+    "First name": {
+        "fhir_resource": "Patient",
+        "fhir_source": {
+            "select": ["Patient.name.given"]
+        }
+    },
+    "Birthdate": {
+        "fhir_resource": "Patient",
+        "fhir_source": {
+            "select": ["Patient.birthDate"]
+        }
+    },
+    "Gender": {
+        "fhir_resource": "Patient",
+        "fhir_source": {
+            "select": ["Patient.gender"]
+        }
+    },
+    "Postal code": {
+        "fhir_resource": "Patient",
+        "fhir_source": {
+            "select": ["Patient.address.postalCode"]
+        }
+    },
+    "Practitioner": {
+        "fhir_resource": "Practitioner",
+        "fhir_source": {
+            "join": [{
+                "key": "Practitioner.id",
+                "value": "Patient.general-practitioner"
+            }]
+        }
+    },
+    "Group" :
+    {
+        "fhir_resource":"Group",
+        "fhir_source":{
+            "select": ["Group.identifier.value"],
+            "join":[{
+                "key":"Group.member",
+                "value":"Patient.id"
+            }]
+        }
+    },
+    "ICD-9 Diagnosis": {
+        "fhir_resource": "Condition",
+        "fhir_source": {
+            "select": ["Condition.code.coding.code", "Condition.code.coding.display"],
+            "join": [{
+                "key": "Condition.subject",
+                "value": "Patient.id"
+            }],
+            "where": [{
+                "key": "Condition.code",
+                "value": "http://hl7.org/fhir/sid/icd-9%7C"
+            }]
+        },
+        "display": {
+            "concatenate_columns": ["Condition.code.coding.code", "Condition.code.coding.display"],
+            "join_symbol": "( )"
+        }
+    },
+    "Medication": {
+        "fhir_resource": "MedicationRequest",
+        "fhir_source": {
+            "select": ["MedicationRequest.medicationCodeableConcept.coding.display", "MedicationRequest.dosageInstruction.doseAndRate.doseQuantity.value", "MedicationRequest.dosageInstruction.doseAndRate.doseQuantity.unit"],
+            "join": [{
+                "key": "MedicationRequest.subject",
+                "value": "Patient.id"
+            }]
+        },
+        "display": {
+            "concatenate_columns": ["MedicationRequest.medicationCodeableConcept.coding.display", "MedicationRequest.dosageInstruction.doseAndRate.doseQuantity.value", "MedicationRequest.dosageInstruction.doseAndRate.doseQuantity.unit"],
+            "join_symbol": " "
+        }
+    },
+    "Weight": {
+        "fhir_resource": "Observation as Weight",
+        "fhir_source": {
+            "select": ["Weight.valueQuantity.value", "Weight.valueQuantity.unit"],
+            "join": [{
+                "key": "Weight.subject",
+                "value": "Patient.id"
+            }],
+            "where": [{
+                "key": "Weight.code",
+                "value": "http://loinc.org%7C29463-7"
+            }]
+        },
+        "display": {
+            "concatenate_columns": ["Weight.valueQuantity.value", "Weight.valueQuantity.unit"],
+            "join_symbol": " "
+        }
+    },
+    "Height": {
+        "fhir_resource": "Observation as Height",
+        "fhir_source": {
+            "select": ["Height.valueQuantity.value", "Height.valueQuantity.unit"],
+            "join": [{
+                "key": "Height.subject",
+                "value": "Patient.id"
+            }],
+            "where": [{
+                "key": "Height.code",
+                "value": "http://loinc.org%7C8302-2"
+            }]
+        },
+        "display": {
+            "concatenate_columns": ["Height.valueQuantity.value", "Height.valueQuantity.unit"],
+            "join_symbol": " "
+        }
+    },
+    "Albumin": {
+        "fhir_resource": "Observation as Albumin",
+        "fhir_source": {
+            "select": ["Albumin.valueQuantity.value", "Albumin.valueQuantity.unit"],
+            "join": [{
+                "key": "Albumin.subject",
+                "value": "Patient.id"
+            }],
+            "where": [{
+                "key": "Albumin.code",
+                "value": "http://loinc.org%7C1751-7"
+            }]
+        },
+        "display": {
+            "concatenate_columns": ["Albumin.valueQuantity.value", "Albumin.valueQuantity.unit"],
+            "join_symbol": " "
+        }
+    },
+    "Creatinin": {
+        "fhir_resource": "Observation as Creatinin",
+        "fhir_source": {
+            "select": ["Creatinin.valueQuantity.value", "Creatinin.valueQuantity.unit"],
+            "join": [{
+                "key": "Creatinin.subject",
+                "value": "Patient.id"
+            }],
+            "where": [{
+                "key": "Creatinin.code",
+                "value": "http://loinc.org%7C2160-0"
+            }]
+        },
+        "display": {
+            "concatenate_columns": ["Creatinin.valueQuantity.value", "Creatinin.valueQuantity.unit"],
+            "join_symbol": " "
+        }
+    },
+    "Glucose": {
+        "fhir_resource": "Observation as Glucose",
+        "fhir_source": {
+            "select": ["Glucose.valueQuantity.value", "Glucose.valueQuantity.unit"],
+            "join": [{
+                "key": "Glucose.subject",
+                "value": "Patient.id"
+            }],
+            "where": [{
+                "key": "Glucose.code",
+                "value": "http://loinc.org%7C2339-0"
+            }]
+        },
+        "display": {
+            "concatenate_columns": ["Glucose.valueQuantity.value", "Glucose.valueQuantity.unit"],
+            "join_symbol": " "
+        }
+    },
+    "Bilirubin": {
+        "fhir_resource": "Observation as Bilirubin",
+        "fhir_source": {
+            "select": ["Bilirubin.valueQuantity.value", "Bilirubin.valueQuantity.unit"],
+            "join": [{
+                "key": "Bilirubin.subject",
+                "value": "Patient.id"
+            }],
+            "where": [{
+                "key": "Bilirubin.code",
+                "value": "http://loinc.org%7C5770-3"
+            }]
+        },
+        "display": {
+            "concatenate_columns": ["Bilirubin.valueQuantity.value", "Bilirubin.valueQuantity.unit"],
+            "join_symbol": " "
+        }
+    },
+    "Magnesium": {
+        "fhir_resource": "Observation as Magnesium",
+        "fhir_source": {
+            "select": ["Magnesium.valueQuantity.value", "Magnesium.valueQuantity.unit"],
+            "join": [{
+                "key": "Magnesium.subject",
+                "value": "Patient.id"
+            }],
+            "where": [{
+                "key": "Magnesium.code",
+                "value": "http://loinc.org%7C2601-3"
+            }]
+        },
+        "display": {
+            "concatenate_columns": ["Magnesium.valueQuantity.value", "Magnesium.valueQuantity.unit"],
+            "join_symbol": " "
+        }
+    },
+    "Sodium": {
+        "fhir_resource": "Observation as Sodium",
+        "fhir_source": {
+            "select": ["Sodium.valueQuantity.value", "Sodium.valueQuantity.unit"],
+            "join": [{
+                "key": "Sodium.subject",
+                "value": "Patient.id"
+            }],
+            "where": [{
+                "key": "Sodium.code",
+                "value": "http://loinc.org%7C2951-2"
+            }]
+        },
+        "display": {
+            "concatenate_columns": ["Sodium.valueQuantity.value", "Sodium.valueQuantity.unit"],
+            "join_symbol": " "
+        }
+    },
+    "Potassium": {
+        "fhir_resource": "Observation as Potassium",
+        "fhir_source": {
+            "select": ["Potassium.valueQuantity.value", "Potassium.valueQuantity.unit"],
+            "join": [{
+                "key": "Potassium.subject",
+                "value": "Patient.id"
+            }],
+            "where": [{
+                "key": "Potassium.code",
+                "value": "http://loinc.org%7C2823-3"
+            }]
+        },
+        "display": {
+            "concatenate_columns": ["Potassium.valueQuantity.value", "Potassium.valueQuantity.unit"],
+            "join_symbol": " "
+        }
+    },
+    "ALAT": {
+        "fhir_resource": "Observation as ALAT",
+        "fhir_source": {
+            "select": ["ALAT.valueQuantity.value", "ALAT.valueQuantity.unit"],
+            "join": [{
+                "key": "ALAT.subject",
+                "value": "Patient.id"
+            }],
+            "where": [{
+                "key": "ALAT.code",
+                "value": "http://loinc.org%7C1742-6"
+            }]
+        },
+        "display": {
+            "concatenate_columns": ["ALAT.valueQuantity.value", "ALAT.valueQuantity.unit"],
+            "join_symbol": " "
+        }
+    },
+    "ASAT": {
+        "fhir_resource": "Observation as ASAT",
+        "fhir_source": {
+            "select": ["ASAT.valueQuantity.value", "ASAT.valueQuantity.unit"],
+            "join": [{
+                "key": "ASAT.subject",
+                "value": "Patient.id"
+            }],
+            "where": [{
+                "key": "ASAT.code",
+                "value": "http://loinc.org%7C1920-8"
+            }]
+        },
+        "display": {
+            "concatenate_columns": ["ASAT.valueQuantity.value", "ASAT.valueQuantity.unit"],
+            "join_symbol": " "
+        }
+    }
+}
