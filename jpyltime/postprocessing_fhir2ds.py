@@ -36,6 +36,14 @@ class FHIR2DS_Postprocessing:
             attributes: Dict of attributes asked by user, with info on anonymization constraints and custom names
 
         """
+
+        def flatten(x):
+            return (
+                [a for i in x for a in flatten(i)]
+                if isinstance(x, list) and not isinstance(x, (str, bytes))
+                else [x]
+            )
+
         display_df = pd.DataFrame()
         display_df[patient_id_colname] = df[patient_id_colname]
         # Fill the new dataset with : new column names and combination of some column values
@@ -53,12 +61,9 @@ class FHIR2DS_Postprocessing:
                 )
             # Case only renaming is required
             else:
-                flatten_column_data = df[attribute_info["fhir_source"]["select"][0]].apply(
-                    lambda x: [item for sublist in x for item in sublist][0]
-                    if isinstance(x, list)
-                    else x
-                )
-                display_df[attribute.custom_name] = flatten_column_data
+                display_df[attribute.custom_name] = df[
+                    attribute_info["fhir_source"]["select"][0]
+                ].apply(lambda x: flatten(x)[0])
         return display_df
 
     def anonymize(self, df: pd.DataFrame, attributes: Dict[str, Attribute]) -> pd.DataFrame:
