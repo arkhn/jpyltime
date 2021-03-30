@@ -70,7 +70,7 @@
         },
         "display": {
             "concatenate_columns": ["Condition.code.coding.code", "Condition.code.coding.display"],
-            "join_symbol": "( )"
+            "join_symbol": " "
         }
     },
     "Medication": {
