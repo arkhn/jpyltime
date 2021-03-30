@@ -29,7 +29,14 @@ def test_postprocessing(attribute_file):
     postprocessing = FHIR2DS_Postprocessing(map_attributes, anonymization_symbol=anonymization_symbol)
     display_df = postprocessing.postprocess(df, d_attributes)
 
-    true_columns = ["Patient:from_id","Prénom","Poids","Médicaments","Anniversaire"]
-    true = pd.DataFrame([['3728', {'john'}, {'20 kg'}, {'ICD 22 mg'}, '*'], ['8392', {'tom', 'nick'}, {'50 kg', '90 kg'}, {'ICD 8493 L', 'ICD 22 mg'}, '*'], ['9382', {'julie'}, {'92 kg'}, {'ICD 38 L'}, '*']], columns = true_columns)
+    true_columns = ["Patient:from_id", "Prénom", "Poids", "Médicaments", "Anniversaire"]
+    true = pd.DataFrame(
+        [
+            ["3728", {"john"}, {"20 kg"}, {"ICD 22 mg"}, "*"],
+            ["8392", {"tom", "nick"}, {"50 kg", "90 kg"}, {"ICD 8493 L", "ICD 22 mg"}, "*"],
+            ["9382", {"julie"}, {"92 kg"}, {"ICD 38 L"}, "*"],
+        ],
+        columns=true_columns,
+    )
 
     assert true.equals(display_df)

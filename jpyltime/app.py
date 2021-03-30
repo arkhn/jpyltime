@@ -1,18 +1,18 @@
 """Set-up the FastAPI to communicate with fhir2dataset."""
 
-from typing import List, Dict, Any
-import json
-import jpyltime.settings as settings
 import io
+import json
+from typing import Any, Dict, List
 
 import fhir2dataset as query
 from fastapi import Body, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from jpyltime.utils import Attribute
-from jpyltime.preprocessing_fhir2ds import FHIR2DS_Preprocessing
-from jpyltime.postprocessing_fhir2ds import FHIR2DS_Postprocessing
 from fastapi.responses import StreamingResponse
+
+import jpyltime.settings as settings
+from jpyltime.postprocessing_fhir2ds import FHIR2DS_Postprocessing
+from jpyltime.preprocessing_fhir2ds import FHIR2DS_Preprocessing
+from jpyltime.utils import Attribute
 
 app = FastAPI()
 
@@ -45,8 +45,10 @@ def fhir2dataset_route(
         JSON representation of the table containing the required data.
     """
     # preprocessing
-    requested_attributes = {attribute.official_name : attribute for attribute in attributes}
-    sql_query, updated_map_attributes = FHIR2DS_Preprocessing(group_id = group_id).preprocess(requested_attributes)
+    requested_attributes = {attribute.official_name: attribute for attribute in attributes}
+    sql_query, updated_map_attributes = FHIR2DS_Preprocessing(group_id=group_id).preprocess(
+        requested_attributes
+    )
     print(sql_query)
 
     sql_df = query.sql(sql_query, fhir_api_url=settings.FHIR_API_URL, token=practitioner_id)

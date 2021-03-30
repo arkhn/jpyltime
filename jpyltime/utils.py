@@ -1,5 +1,5 @@
-
 from pydantic import BaseModel
+
 
 class Attribute(BaseModel):
     """Define the data model for the attributes."""

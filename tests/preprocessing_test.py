@@ -8,20 +8,20 @@ def test_add_group_id():
     d_attributes = {attribute.official_name : attribute for attribute in attributes}
     group_attribute_name = "Group"
     group_id = "38de92"
-    
-    preprocessing = FHIR2DS_Preprocessing(group_id = group_id)
+
+    preprocessing = FHIR2DS_Preprocessing(group_id=group_id)
     query = preprocessing.generate_sql_query(requested_attributes)
 
-    assert f"Group.identifier = {group_id}" in query # Group id
+    assert f"Group.identifier = {group_id}" in query  # Group id
     assert "INNER JOIN Group ON Group.member = Patient.id" in query
 
 
 
 def test_simple_query():
     true = """SELECT Patient.name.given FROM Patient"""
-    attributes = [Attribute(official_name="First name", custom_name="Prénom", anonymize = False)]
-    d_attributes = {attribute.official_name : attribute for attribute in attributes}
-    query =FHIR2DS_Preprocessing().generate_sql_query(d_attributes)
+    attributes = [Attribute(official_name="First name", custom_name="Prénom", anonymize=False)]
+    requested_attributes = {attribute.official_name: attribute for attribute in attributes}
+    query = FHIR2DS_Preprocessing().generate_sql_query(requested_attributes)
     assert true == query
 
 
