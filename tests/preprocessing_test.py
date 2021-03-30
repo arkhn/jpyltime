@@ -3,24 +3,6 @@ from jpyltime.preprocessing_fhir2ds import FHIR2DS_Preprocessing
 from jpyltime.utils import Attribute
 
 
-def test_update_attributes():    
-    attributes = [Attribute(official_name="First name", custom_name="Prénom", anonymize = False), Attribute(official_name="Gender", custom_name="Sexe", anonymize = False), Attribute(official_name="ASAT", custom_name="ASAT", anonymize = False),Attribute(official_name="Potassium", custom_name="Potassium", anonymize = False)]
-    d_attributes = {attribute.official_name : attribute for attribute in attributes}
-
-    preprocessing = FHIR2DS_Preprocessing()
-    birthdate_condition = "ge2001-01-01"
-    birthdate_attribute_name = "Birthdate"
-    updated_attributes = preprocessing.update_attributes(d_attributes.copy(), patient_birthdate_condition=birthdate_condition)
-
-    diff_attributes = set(updated_attributes.keys()).difference(set(d_attributes.keys()))
-    assert len(diff_attributes) == 1
-    assert diff_attributes == {'Birthdate'}
-    assert birthdate_attribute_name in updated_attributes
-    assert "Patient.birthdate" in [where_condition["key"] for where_condition in preprocessing.map_attributes[birthdate_attribute_name]["fhir_source"]["where"] ]
-    assert birthdate_condition in [where_condition["value"] for where_condition in preprocessing.map_attributes[birthdate_attribute_name]["fhir_source"]["where"] ]
-
-
-
 def test_add_group_id():
     attributes = [Attribute(official_name="First name", custom_name="Prénom", anonymize = False), Attribute(official_name="Gender", custom_name="Sexe", anonymize = False), Attribute(official_name="ASAT", custom_name="ASAT", anonymize = False),Attribute(official_name="Potassium", custom_name="Potassium", anonymize = False)]
     d_attributes = {attribute.official_name : attribute for attribute in attributes}
