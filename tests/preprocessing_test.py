@@ -29,7 +29,7 @@ def test_add_group_id(requested_attributes):
     assert "INNER JOIN Group ON Group.member = Patient.id" in query
 
 
-def test_simple_query(requested_attributes):
+def test_simple_query():
     true = """SELECT Patient.name.given FROM Patient"""
     attributes = [Attribute(official_name="First name", custom_name="Prénom", anonymize=False)]
     requested_attributes = {attribute.official_name: attribute for attribute in attributes}
@@ -41,11 +41,11 @@ def test_complex_query(requested_attributes):
     query = FHIR2DS_Preprocessing().generate_sql_query(requested_attributes)
 
     true = """SELECT Patient.name.given, Patient.gender, ASAT.valueQuantity.value, ASAT.valueQuantity.unit, Potassium.valueQuantity.value, Potassium.valueQuantity.unit FROM Patient INNER JOIN Observation as ASAT ON ASAT.subject = Patient.id INNER JOIN Observation as Potassium ON Potassium.subject = Patient.id WHERE ASAT.code = http://loinc.org%7C1920-8 AND Potassium.code = http://loinc.org%7C2823-3"""
-    assert query.split() == true.split()
+    assert query == true
 
 
 def test_preprocessing(requested_attributes):
     query, map_attributes = FHIR2DS_Preprocessing().preprocess(requested_attributes.copy())
 
     true = """SELECT Patient.name.given, Patient.gender, ASAT.valueQuantity.value, ASAT.valueQuantity.unit, Potassium.valueQuantity.value, Potassium.valueQuantity.unit FROM Patient INNER JOIN Observation as ASAT ON ASAT.subject = Patient.id INNER JOIN Observation as Potassium ON Potassium.subject = Patient.id WHERE ASAT.code = http://loinc.org%7C1920-8 AND Potassium.code = http://loinc.org%7C2823-3"""
-    assert query.split() == true.split()
+    assert query == true

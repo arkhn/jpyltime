@@ -95,7 +95,7 @@ class FHIR2DS_Preprocessing:
         sql_select = self._select(attributes)
         sql_join = self._join(attributes)
         sql_where = self._where(attributes)
-        sql_query = "\n".join(
+        sql_query = " ".join(
             [sql_part for sql_part in [sql_select, sql_join, sql_where] if sql_part]
         )
         return sql_query

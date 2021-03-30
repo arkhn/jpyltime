@@ -38,11 +38,7 @@ class FHIR2DS_Postprocessing:
         """
 
         def flatten(x):
-            return (
-                [a for i in x for a in flatten(i)]
-                if isinstance(x, list) and not isinstance(x, (str, bytes))
-                else [x]
-            )
+            return [a for i in x for a in flatten(i)] if isinstance(x, list) else [x]
 
         display_df = pd.DataFrame()
         display_df[patient_id_colname] = df[patient_id_colname]
