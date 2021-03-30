@@ -9,17 +9,9 @@ def test_add_group_id():
     group_attribute_name = "Group"
     group_id = "38de92"
     
-    preprocessing = FHIR2DS_Preprocessing()
-    updated_attributes = preprocessing.update_attributes(d_attributes.copy(), group_id=group_id)
+    preprocessing = FHIR2DS_Preprocessing(group_id = group_id)
+    query = preprocessing.generate_sql_query(requested_attributes)
 
-    diff_attributes = set(updated_attributes.keys()).difference(set(d_attributes.keys()))
-    assert len(diff_attributes) == 1
-    assert diff_attributes == {'Group'}
-    assert "Group.identifier" in [where_condition["key"] for where_condition in preprocessing.map_attributes[group_attribute_name]["fhir_source"]["where"] ]
-    assert group_id in [where_condition["value"] for where_condition in preprocessing.map_attributes[group_attribute_name]["fhir_source"]["where"] ] 
-
-    query = preprocessing.generate_sql_query(updated_attributes)
-    
     assert f"Group.identifier = {group_id}" in query # Group id
     assert "INNER JOIN Group ON Group.member = Patient.id" in query
 

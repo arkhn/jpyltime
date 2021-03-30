@@ -46,14 +46,14 @@ def fhir2dataset_route(
     """
     # preprocessing
     requested_attributes = {attribute.official_name : attribute for attribute in attributes}
-    sql_query, updated_requested_attributes, updated_map_attributes = FHIR2DS_Preprocessing().preprocess(requested_attributes, group_id)
+    sql_query, updated_map_attributes = FHIR2DS_Preprocessing(group_id = group_id).preprocess(requested_attributes)
     print(sql_query)
-    
+
     sql_df = query.sql(sql_query, fhir_api_url=settings.FHIR_API_URL, token=practitioner_id)
     print(sql_df.head())
 
     # postprocessing
-    df = FHIR2DS_Postprocessing(updated_map_attributes).postprocess(sql_df, updated_requested_attributes)
+    df = FHIR2DS_Postprocessing(updated_map_attributes).postprocess(sql_df, requested_attributes)
     response = StreamingResponse(io.StringIO(df.to_csv(index=False)), media_type="text/csv")
     response.headers["Content-Disposition"] = "attachment; filename=export.csv"
 

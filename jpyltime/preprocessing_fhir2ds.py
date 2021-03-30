@@ -7,10 +7,14 @@ from jpyltime.utils import Attribute
 # FIXME Doesn't Fhir2Dataset provide some kind of SDK (a set of functions to build a query)?
 # As both jpyltime and F2D are written in python, it's a bit painful to see them communicate via a handwritten string
 class FHIR2DS_Preprocessing():
-    def __init__(self, attribute_file : str="jpyltime/documents/attributes_mapping.json"):
-        """map_attributes: a mapping of Column Name in natural language to FHIR information (resource name, source name and conditions)"""
+    def __init__(self, attribute_file : str="jpyltime/documents/attributes_mapping.json", group_id : Optional[str] = None):
+        """Args:
+            map_attributes: a mapping of Column Name in natural language to FHIR information (resource name, source name and conditions)
+            group_id (Optional[str]): Practioner id to restrict the scope of the query to specific patient from a practioner. Defaults to None.
+        """
         with open(attribute_file, "r") as f:
             self.map_attributes =  json.loads(f.read())
+        self.group_id = group_id
         
 
     def _select(self, attributes: List[str]) -> str:
@@ -27,6 +31,8 @@ class FHIR2DS_Preprocessing():
             if "join" in self.map_attributes[attribute]["fhir_source"]:
                 for join_condition in self.map_attributes[attribute]["fhir_source"]["join"]: 
                     sql_join.append(" ".join(["INNER JOIN", self.map_attributes[attribute]["fhir_resource"], "ON" , join_condition["key"], "=" , join_condition["value"]]))
+        if self.group_id:
+            sql_join.append(f"INNER JOIN Group ON Group.member = Patient.id")                    
         if not sql_join:
             return ""
         return " ".join(sql_join)
@@ -34,42 +40,18 @@ class FHIR2DS_Preprocessing():
 
     def _where(self, attributes: List[str]) -> Optional[str]:
         """Generate WHERE ... conditions of the sql query, from a list of attribute names given by the user"""
-        where_conditions = []
+        sql_where = []
         for attribute in attributes:
             map_attribute = self.map_attributes[attribute]
             if "where" in map_attribute["fhir_source"]:
                 for where_condition in map_attribute["fhir_source"]["where"] :
-                    where_conditions.append(" ".join([where_condition["key"], "=", where_condition["value"]]))
-        if not where_conditions:
+                    sql_where.append(" ".join([where_condition["key"], "=", where_condition["value"]]))
+
+        if self.group_id:
+            sql_where.append(f"Group.identifier = {self.group_id}")
+        if not sql_where:
             return ""
-        return f"WHERE {' AND '.join(where_conditions)}"
-
-
-    def _add_group_id_condition(self, group_id: str) :
-        """Add a condition on the patient scope when a group id is specified by the user"""
-        self.map_attributes["Group"]["fhir_source"]["where"] =[{ 
-                    "key": "Group.identifier", 
-                    "value": str(group_id)
-                    }] 
-
-
-
-    # FIXME I don't think this method is really useful. Is it meant for restricting the resources to which the practitioner has access? If so, I don't think jpyltime should do that
-    def update_attributes(self, attributes: Dict[str, Attribute], group_id: Optional[str] = None):
-        """Update a dict of attribute given by the user with restriction on the patient scope by specifying a group id. 
-
-        Args:
-            attributes (Dict[Attribute]): Dict of attributes that must appear in the SQL query
-            group_id (Optional[str]): Group id to restrict the scope of the query to patients from a specific cohort. Defaults to None.
-
-        Returns:
-            attributes: List of attributes updated with constraints on group id
-        """
-        if group_id: 
-            self._add_group_id_condition(group_id) 
-            if "Group" not in attributes:
-                attributes["Group"] = Attribute(official_name="Group",custom_name="Cohort",anonymize=False)
-        return attributes
+        return f"WHERE {' AND '.join(sql_where)}"
 
 
     def _check_attributes_defined(self, attributes: Dict[str, Attribute]):
@@ -94,12 +76,11 @@ class FHIR2DS_Preprocessing():
         sql_query = "\n".join([sql_part for sql_part in [sql_select, sql_join, sql_where] if sql_part])
         return sql_query
 
-    def preprocess(self, attributes: Dict[str, Attribute], group_id:Optional[str]= None) -> Tuple[str, Dict[str, Attribute], Dict[str,Any]]:
+    def preprocess(self, attributes: Dict[str, Attribute]) -> Tuple[str, Dict[str,Any]]:
         """Adapt a list of attributes to generate a correct sql query to request the fhir api
 
         Args:
             attributes: Dict of Attributes that must appear in the SQL query, given by the user
-            group_id (Optional[str]): Practioner id to restrict the scope of the query to specific patient from a practioner. Defaults to None.
 
         Returns:
             Tuple[str, Dict[str, Attribute]]: 
@@ -108,10 +89,8 @@ class FHIR2DS_Preprocessing():
             - map_attributes: mapping of Column Name in natural language to FHIR information (resource name, source name and conditions)
         """
         self._check_attributes_defined(attributes)
-
-        attributes = self.update_attributes(attributes, group_id)
         sql_query = self.generate_sql_query(attributes)
-        return sql_query, attributes, self.map_attributes
+        return sql_query, self.map_attributes
 
 
 
