@@ -69,7 +69,7 @@ class FHIR2DS_Preprocessing:
                     )
 
         if self.group_id:
-            sql_where.append(f"Group.identifier = {self.group_id}")
+            sql_where.append(f"Group._id = {self.group_id}")
         if not sql_where:
             return ""
         return f"WHERE {' AND '.join(sql_where)}"
