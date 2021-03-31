@@ -13,11 +13,8 @@ fastapi = "0.63.0"
 fhir2dataset = {git = "https://github.com/arkhn/FHIR2Dataset"}
 pandas = "*"
 pydantic = "*"
+pytest = "6.2.2"
 uvicorn = "*"
-
-[tool.poetry.dev-dependencies]
-pytest = "*"
-pytest-cov = "*"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
