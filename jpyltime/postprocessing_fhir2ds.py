@@ -49,7 +49,7 @@ class FHIR2DS_Postprocessing:
                 ].apply(
                     lambda row: attribute_info["display"]["join_symbol"].join(
                         row.values.astype(str)
-                    ) if row.any() else '',
+                    ) if row.any() else None,
                     axis=1,
                 )
             # Case only renaming is required
