@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List
 
 import pandas as pd
 
@@ -90,13 +90,11 @@ class FHIR2DS_Postprocessing:
         """
         df = self._concatenate_columns(df, attributes, patient_index)
         # Construct the list of columns coming from the main table, Patient"""
-        patient_columns: List[str] = [patient_index]
-        for attribute in attributes.values():
-            if (
-                self.map_attributes[attribute.official_name]["fhir_resource"]
-                == patient_resource_name
-            ):
-                patient_columns.append(attribute.custom_name)
+        patient_columns: List[str] = [
+            attr.custom_name
+            for attr in attributes.values()
+            if self.map_attributes[attr.official_name]["fhir_resource"] == patient_resource_name
+        ] + [patient_index]
         # Groupby Patient and combine other values as list of the same type (ex. Weight or Potassium)"""
         # Aggregate information by Patient, dropping null values to avoid Null in output list, ex [50kg, Null, Null, Null, 60kg, Null, 80kg, Null]
         df = (
