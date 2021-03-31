@@ -51,10 +51,10 @@ def test_postprocessing(map_attributes, example_dataframe, attributes):
     expected_columns = ["Prénom", "Anniversaire", "Poids", "Médicaments"]
     expected = pd.DataFrame(
         [
-            ["*", "2019-03-23", ["90 kg"], ["ICD 22 mg"]],
             ["*", "2839-11-20", ["20 kg"], ["ICD 22 mg"]],
-            ["*", "2019-20-20", ["50 kg", "50 kg"], ["ICD 22 mg", "ICD 8493 L"]],
             ["*", "1300-05-17", ["92 kg"], ["ICD 38 L"]],
+            ["*", "2019-03-23", ["90 kg"], ["ICD 22 mg"]],
+            ["*", "2019-20-20", ["50 kg", "50 kg"], ["ICD 22 mg", "ICD 8493 L"]],
         ],
         columns=expected_columns,
     )

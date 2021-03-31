@@ -12,27 +12,13 @@ class FHIR2DS_Postprocessing:
         self.map_attributes = map_attributes
         self.anonymization_symbol = anonymization_symbol
 
-    def _groupby_one_column(
-        self, df: pd.DataFrame, col_for_merging: str, col_from_patient_table: Dict[str, bool]
-    ) -> pd.DataFrame:
-        """Groupby one column (arg. col_for_merging), then either:
-            - keep only one value for column from main table (Patient), to avoid repetition of similar value (ex. Name)
-            - combine other values as list of the same type (ex. Weight or Potassium)
-        Check that the column selected to apply the groupby exists in the dataFrame, overwise raise an Exception.
-        Remove patient index column coming from FHIR resource and reset new index"""
-        if col_for_merging not in df.columns:
-            raise Exception(
-                f"Impossible to merge on column name {col_for_merging} as it is not present in the dataframe: {df.columns}"
-            )
-        groupby_cols = [col_for_merging] + list(
-            [
-                col
-                for col, is_from_patient_table in col_from_patient_table.items()
-                if is_from_patient_table
-            ]
-        )
+    def _groupby_patient_column(self, df: pd.DataFrame, patient_columns: List[str]) -> pd.DataFrame:
+        """Groupby Patient and combine other values as list of the same type (ex. Weight or Potassium)"""
+        # Aggregate information by Patient, dropping null values to avoid NaN in output list
         return (
-            df.groupby(groupby_cols, dropna=False).agg(lambda x: list(x[x.notna()])).reset_index()
+            df.groupby(patient_columns, dropna=False)
+            .agg(lambda x: list(x[x.notna()]))
+            .reset_index()
         )
 
     def _concatenate_columns(
@@ -41,7 +27,7 @@ class FHIR2DS_Postprocessing:
         attributes: Dict[str, Attribute],
         patient_id_colname: str,
         patient_resource_name: str = "Patient",
-    ) -> Tuple[pd.DataFrame, Dict[str, bool]]:
+    ) -> Tuple[pd.DataFrame, List[str]]:
         """To improve readibility and display, some columns are gathered to reduce the complexity of the dataFrame.
             Display info are written in the attribute dictionary and the dataFrame is modified according to the instructions, by combining some columns.
             Ex: combine value with quantity improve readibility:
@@ -58,7 +44,7 @@ class FHIR2DS_Postprocessing:
 
         Return:
             display_df: df with improved readibility
-            col_from_patient_table: dictionary to know if a column in display_df belongs to the main table Patient or not
+            col_from_patient_table: list of columns in display_df coming from the main table, Patient
         """
 
         def flatten(x):
@@ -66,7 +52,7 @@ class FHIR2DS_Postprocessing:
 
         display_df = pd.DataFrame()
         display_df[patient_id_colname] = df[patient_id_colname]
-        col_from_patient_table: Dict[str, bool] = {}
+        col_from_patient_table: List[str] = []
         # Fill the new dataset with : new column names and combination of some column values
         for attribute in attributes.values():
             attribute_info = self.map_attributes[attribute.official_name]
@@ -80,16 +66,14 @@ class FHIR2DS_Postprocessing:
                     ),
                     axis=1,
                 )
-                col_from_patient_table[attribute.custom_name] = False
             # Case only renaming is required
             else:
                 display_df[attribute.custom_name] = df[
                     attribute_info["fhir_source"]["select"][0]
                 ].apply(lambda x: flatten(x)[0])
-                col_from_patient_table[attribute.custom_name] = (
-                    attribute_info["fhir_resource"] == patient_resource_name
-                )
-        return display_df, col_from_patient_table
+                if attribute_info["fhir_resource"] == patient_resource_name:
+                    col_from_patient_table.append(attribute.custom_name)
+        return display_df, col_from_patient_table + [patient_id_colname]
 
     def anonymize(self, df: pd.DataFrame, attributes: Dict[str, Attribute]) -> pd.DataFrame:
         """Anonymize columns by replacing value with a symbol"""
@@ -116,10 +100,9 @@ class FHIR2DS_Postprocessing:
         Returns:
             pd.DataFrame: The dataFrame updated with the previous transformation.
         """
-        df, col_from_patient_table = self._concatenate_columns(df, attributes, patient_index)
-        df = self._groupby_one_column(
-            df, col_for_merging=patient_index, col_from_patient_table=col_from_patient_table
-        )
+        df, patient_columns = self._concatenate_columns(df, attributes, patient_index)
+        df = self._groupby_patient_column(df, patient_columns)
         df = self.anonymize(df, attributes)
+        # Drop unwanted Patient:from_id index coming from FHIR
         df.drop(columns=[patient_index], inplace=True)
         return df.reset_index(drop=True)
