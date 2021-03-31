@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import pandas as pd
 
@@ -12,17 +12,11 @@ class FHIR2DS_Postprocessing:
         self.map_attributes = map_attributes
         self.anonymization_symbol = anonymization_symbol
 
-    def _groupby_one_column(self, df: pd.DataFrame, col_for_merging: str) -> pd.DataFrame:
-        """Groupby one column (arg. col_for_merging) and combine the grouped rows in list, keeping only not null value
-        Check that the column selected to apply the groupby exists in the dataFrame, overwise raise an Exception."""
-        if col_for_merging not in df.columns:
-            raise Exception(
-                f"Impossible to merge on column name {col_for_merging} as it is not present in the dataframe: {df.columns}"
-            )
-        return df.groupby(by=[col_for_merging]).agg(lambda x: set(x[x.notna()])).reset_index()
-
     def _concatenate_columns(
-        self, df: pd.DataFrame, attributes: Dict[str, Attribute], patient_id_colname: str
+        self,
+        df: pd.DataFrame,
+        attributes: Dict[str, Attribute],
+        patient_id_colname: str,
     ) -> pd.DataFrame:
         """To improve readibility and display, some columns are gathered to reduce the complexity of the dataFrame.
             Display info are written in the attribute dictionary and the dataFrame is modified according to the instructions, by combining some columns.
@@ -34,7 +28,10 @@ class FHIR2DS_Postprocessing:
         Args:
             df: DataFrame as outputted by FHIR2Dataset api
             attributes: Dict of attributes asked by user, with info on anonymization constraints and custom names
+            patient_id_colname: Name of the column for patient index in FHIR
 
+        Return:
+            display_df: df with improved readibility
         """
 
         def flatten(x):
@@ -60,6 +57,7 @@ class FHIR2DS_Postprocessing:
                 display_df[attribute.custom_name] = df[
                     attribute_info["fhir_source"]["select"][0]
                 ].apply(lambda x: flatten(x)[0])
+
         return display_df
 
     def anonymize(self, df: pd.DataFrame, attributes: Dict[str, Attribute]) -> pd.DataFrame:
@@ -74,6 +72,7 @@ class FHIR2DS_Postprocessing:
         df: pd.DataFrame,
         attributes: Dict[str, Attribute],
         patient_index: str = "Patient:from_id",
+        patient_resource_name: str = "Patient",
     ) -> pd.DataFrame:
         """Improve readibility and display of a given dataFrame, by:
             - Concatenated some columns, ex Value with Unit (| 30 | mg | => | 30 mg | )
@@ -83,11 +82,27 @@ class FHIR2DS_Postprocessing:
         Args:
             df: DataFrame as outputted by FHIR2Dataset api
             attributes: Dict of attributes asked by user, with info on anonymization constraints and custom names
+            patient_index: Name of column with unique patient id
+            patient_resource_name: Name of main table, Patient resource in FHIR
 
         Returns:
             pd.DataFrame: The dataFrame updated with the previous transformation.
         """
         df = self._concatenate_columns(df, attributes, patient_index)
-        df = self._groupby_one_column(df, col_for_merging=patient_index)
+        # Construct the list of columns coming from the main table, Patient"""
+        patient_columns: List[str] = [
+            attr.custom_name
+            for attr in attributes.values()
+            if self.map_attributes[attr.official_name]["fhir_resource"] == patient_resource_name
+        ] + [patient_index]
+        # Groupby Patient and combine other values as list of the same type (ex. Weight or Potassium)"""
+        # Aggregate information by Patient, dropping null values to avoid Null in output list, ex [50kg, Null, Null, Null, 60kg, Null, 80kg, Null]
+        df = (
+            df.groupby(patient_columns, dropna=False)
+            .agg(lambda x: list(x[x.notna()]))
+            .reset_index()
+        )
         df = self.anonymize(df, attributes)
+        # Drop unwanted Patient:from_id index coming from FHIR
+        df.drop(columns=[patient_index], inplace=True)
         return df.reset_index(drop=True)

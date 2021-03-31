@@ -18,10 +18,10 @@ def client():
 @pytest.fixture
 def attributes():
     attributes = [
-        Attribute(official_name="First name", custom_name="Prénom", anonymize=False),
+        Attribute(official_name="First name", custom_name="Prénom", anonymize=True),
         Attribute(official_name="Weight", custom_name="Poids", anonymize=False),
         Attribute(official_name="Medication", custom_name="Médicaments", anonymize=False),
-        Attribute(official_name="Birthdate", custom_name="Anniversaire", anonymize=True),
+        Attribute(official_name="Birthdate", custom_name="Anniversaire", anonymize=False),
     ]
     requested_attributes = {attribute.official_name: attribute for attribute in attributes}
     return requested_attributes
