@@ -14,7 +14,7 @@ class FHIR2DS_Postprocessing:
 
     def _groupby_patient_column(self, df: pd.DataFrame, patient_columns: List[str]) -> pd.DataFrame:
         """Groupby Patient and combine other values as list of the same type (ex. Weight or Potassium)"""
-        # Aggregate information by Patient, dropping null values to avoid NaN in output list
+        # Aggregate information by Patient, dropping null values to avoid Null in output list, ex [50kg, Null, Null, Null, 60kg, Null, 80kg, Null]
         return (
             df.groupby(patient_columns, dropna=False)
             .agg(lambda x: list(x[x.notna()]))
