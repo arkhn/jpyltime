@@ -34,7 +34,7 @@ class FHIR2DS_Preprocessing:
         return f"SELECT {', '.join(select_attributes_flatten)} FROM Patient"
 
     def _join(self, attributes: List[str]) -> Optional[str]:
-        """Generate INNER JOIN ... ON ... conditions of the sql query, from a list of attribute names given by the user"""
+        """Generate [INNER-CHILD] JOIN ... ON ... conditions of the sql query, from a list of attribute names given by the user"""
         sql_join = []
         for attribute in attributes:
             if "join" in self.map_attributes[attribute]["fhir_source"]:
@@ -42,7 +42,7 @@ class FHIR2DS_Preprocessing:
                     sql_join.append(
                         " ".join(
                             [
-                                "INNER JOIN",
+                                "CHILD JOIN",
                                 self.map_attributes[attribute]["fhir_resource"],
                                 "ON",
                                 join_condition["key"],
