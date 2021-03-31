@@ -24,12 +24,16 @@ class FHIR2DS_Postprocessing:
             raise Exception(
                 f"Impossible to merge on column name {col_for_merging} as it is not present in the dataframe: {df.columns}"
             )
-        df = df.groupby(by=[col_for_merging]).agg(lambda x: list(x[x.notna()])).reset_index()
-        df.drop(columns=[col_for_merging], inplace=True)
-        for col in df.columns:
-            if col_from_patient_table[col]:
-                df[col] = df[col].apply(lambda x: x[0] if x else None)
-        return df
+        groupby_cols = [col_for_merging] + list(
+            [
+                col
+                for col, is_from_patient_table in col_from_patient_table.items()
+                if is_from_patient_table
+            ]
+        )
+        return (
+            df.groupby(groupby_cols, dropna=False).agg(lambda x: list(x[x.notna()])).reset_index()
+        )
 
     def _concatenate_columns(
         self,
@@ -117,4 +121,5 @@ class FHIR2DS_Postprocessing:
             df, col_for_merging=patient_index, col_from_patient_table=col_from_patient_table
         )
         df = self.anonymize(df, attributes)
+        df.drop(columns=[patient_index], inplace=True)
         return df.reset_index(drop=True)
