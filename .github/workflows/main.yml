@@ -1,13 +1,15 @@
-name: Build & publish
+name: jpyltime
 
 on:
   push:
+    branches:
+      - "main"
     tags:
       - v*
+  pull_request:
 
 jobs:
-  pypa:
-    name: jpyltime
+  build-and-publish:
     runs-on: ubuntu-latest
     steps:
       - id: docker_meta
@@ -46,3 +48,21 @@ jobs:
           push: true
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
+
+  unit-tests:
+    runs-on: ubuntu-18.04
+    needs: [build-and-publish]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - uses: docker/login-action@v1
+        name: login to arkhn registry
+        with:
+          username: ${{ secrets.DOCKER_LOGIN }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+      - id: tests
+        run: |
+          docker pull arkhn/jpyltime:sha-${GITHUB_SHA::7}
+          docker run --entrypoint=poetry arkhn/jpyltime:sha-${GITHUB_SHA::7} run pytest
